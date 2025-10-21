@@ -35,18 +35,24 @@ export async function apiRequest<T>({
 
   try {
     const url = new URL(endpoint, CURRENT_BASE_URL);
+    let body: string | undefined;
 
     if (params) {
-      Object.entries(params).forEach(([key, value]) => {
-        if (value !== undefined && value !== null) {
-          url.searchParams.set(key, String(value));
-        }
-      });
+      if (method === "GET" || method === "DELETE") {
+        Object.entries(params).forEach(([key, value]) => {
+          if (value !== undefined && value !== null) {
+            url.searchParams.set(key, String(value));
+          }
+        });
+      } else {
+        body = JSON.stringify(params);
+      }
     }
 
     const response = await fetch(url.toString(), {
       method,
       headers: getAuthHeaders(CURRENT_PAT),
+      ...(body && { body }),
     });
 
     if (!response.ok) {
@@ -71,8 +77,8 @@ export async function apiRequest<T>({
 export function getAuthHeaders(token: string): Record<string, string> {
   return {
     Authorization: `Bearer ${token}`,
-    "Content-Type": "application/json",
     Accept: "application/json",
+    "Content-Type": "application/json",
   };
 }
 

@@ -155,3 +155,44 @@ export interface JiraField {
     items?: string;
   };
 }
+
+export interface JiraWorklog {
+  billableSeconds: number;
+  timeSpent: string;
+  tempoWorklogId: number;
+  timeSpentSeconds: number;
+  issue: {
+    epicKey: string;
+    epicIssue: {
+      issueType: string;
+      iconUrl: string;
+      summary: string;
+      estimatedRemainingSeconds?: number;
+    };
+    reporterKey: string;
+    issueStatus: string;
+    internalIssue: boolean;
+    issueType: string;
+    projectId: number;
+    projectKey: string;
+    iconUrl: string;
+    summary: string;
+    components: unknown[];
+    versions: unknown[];
+    key: string;
+    id: number;
+  };
+  comment: string;
+  location: {
+    name: string;
+    id: number;
+  };
+  attributes: Record<string, unknown>;
+  worker?: string;
+  updater: string;
+  started: string;
+  originTaskId: number;
+  dateCreated: string;
+  dateUpdated: string;
+  originId: number;
+}

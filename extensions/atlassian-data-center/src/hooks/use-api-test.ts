@@ -4,8 +4,13 @@ import { CURRENT_BASE_URL, CURRENT_PAT } from "@/constants";
 import { getAuthHeaders, writeResponseFile } from "@/utils";
 
 const FETCH_CONFIG = {
-  method: "GET",
-  endpoint: "/rest/api/user/current",
+  method: "POST" as "GET" | "POST" | "PUT",
+  endpoint: "/rest/tempo-timesheets/4/worklogs/search",
+  params: {
+    from: "2025-08-04",
+    to: "2025-08-10",
+    worker: ["JIRAUSER15518"],
+  },
 } as const;
 
 export function useApiTest() {
@@ -15,7 +20,7 @@ export function useApiTest() {
 }
 
 async function fetchApi() {
-  const { endpoint, method } = FETCH_CONFIG;
+  const { endpoint, method, params } = FETCH_CONFIG;
 
   if (!endpoint) return;
 
@@ -26,6 +31,22 @@ async function fetchApi() {
       method,
       headers: getAuthHeaders(CURRENT_PAT),
     };
+
+    if (method === "GET") {
+      if (params) {
+        Object.entries(params).forEach(([key, value]) => {
+          url.searchParams.append(key, String(value));
+        });
+      }
+    } else if (method === "POST" || method === "PUT") {
+      if (params) {
+        requestOptions.body = JSON.stringify(params);
+        requestOptions.headers = {
+          ...requestOptions.headers,
+          "Content-Type": "application/json",
+        };
+      }
+    }
 
     const response = await fetch(url.toString(), requestOptions);
 

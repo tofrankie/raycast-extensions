@@ -9,7 +9,9 @@ const cacheInstances = new Set<Cache>();
 
 export const avatarCache = createCache();
 
-export const customFieldCache = createCache();
+export const jiraCustomFieldCache = createCache();
+
+export const jiraCurrentUserCache = createCache();
 
 export async function clearAllCacheWithToast() {
   await clearAllCache();

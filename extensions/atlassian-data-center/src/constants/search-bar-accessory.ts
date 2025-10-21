@@ -6,13 +6,13 @@ import type { SearchBarAccessoryItem, SearchBarAccessoryCommandName } from "@/ty
 
 const CONFLUENCE_SEARCH_CONTENT_FILTERS: SearchBarAccessoryItem[] = [
   {
-    id: "default",
+    value: "default",
     title: "All Content",
     query: "",
     icon: Icon.MagnifyingGlass,
   },
   {
-    id: "viewed_recently",
+    value: "viewed_recently",
     title: "Viewed Recently",
     query: `id in recentlyViewedContent(${PAGINATION_SIZE}, 0)`,
     icon: Icon.Eye,
@@ -21,7 +21,7 @@ const CONFLUENCE_SEARCH_CONTENT_FILTERS: SearchBarAccessoryItem[] = [
     sectionTitle: ({ fetchedCount, totalCount }) => `Viewed Recently (${fetchedCount}/${totalCount})`,
   },
   {
-    id: "created_by_me",
+    value: "created_by_me",
     title: "Created by Me",
     query: "creator = currentUser()",
     icon: Icon.Person,
@@ -31,7 +31,7 @@ const CONFLUENCE_SEARCH_CONTENT_FILTERS: SearchBarAccessoryItem[] = [
     sectionTitle: ({ fetchedCount, totalCount }) => `Created by Me (${fetchedCount}/${totalCount})`,
   },
   {
-    id: "contributed_by_me",
+    value: "contributed_by_me",
     title: "Contributed by Me",
     query: "contributor = currentUser()",
     icon: Icon.Pencil,
@@ -41,7 +41,7 @@ const CONFLUENCE_SEARCH_CONTENT_FILTERS: SearchBarAccessoryItem[] = [
     sectionTitle: ({ fetchedCount, totalCount }) => `Contributed by Me (${fetchedCount}/${totalCount})`,
   },
   {
-    id: "mentions_me",
+    value: "mentions_me",
     title: "Mentions Me",
     query: "mention = currentUser()",
     icon: Icon.AtSymbol,
@@ -50,7 +50,7 @@ const CONFLUENCE_SEARCH_CONTENT_FILTERS: SearchBarAccessoryItem[] = [
     sectionTitle: ({ fetchedCount, totalCount }) => `Mentions Me (${fetchedCount}/${totalCount})`,
   },
   {
-    id: "my_favourites",
+    value: "my_favourites",
     title: "My Favourites",
     query: "favourite = currentUser()",
     icon: Icon.Star,
@@ -60,7 +60,7 @@ const CONFLUENCE_SEARCH_CONTENT_FILTERS: SearchBarAccessoryItem[] = [
     sectionTitle: ({ fetchedCount, totalCount }) => `My Favourites (${fetchedCount}/${totalCount})`,
   },
   {
-    id: "watched_by_me",
+    value: "watched_by_me",
     title: "Watched by Me",
     query: "watcher = currentUser()",
     icon: Icon.Eye,
@@ -69,7 +69,7 @@ const CONFLUENCE_SEARCH_CONTENT_FILTERS: SearchBarAccessoryItem[] = [
     sectionTitle: ({ fetchedCount, totalCount }) => `Watched by Me (${fetchedCount}/${totalCount})`,
   },
   {
-    id: "title_only",
+    value: "title_only",
     title: "Title Only",
     query: "",
     icon: Icon.Text,
@@ -80,27 +80,27 @@ const CONFLUENCE_SEARCH_CONTENT_FILTERS: SearchBarAccessoryItem[] = [
 
 const CONFLUENCE_SEARCH_SPACE_FILTERS: SearchBarAccessoryItem[] = [
   {
-    id: "default",
+    value: "default",
     title: "All Space",
     query: "",
     icon: Icon.MagnifyingGlass,
   },
   {
-    id: "personal_space",
+    value: "personal_space",
     title: "Personal Space",
     query: "space.type = personal",
     icon: Icon.Person,
     logicOperator: "AND",
   },
   {
-    id: "global_space",
+    value: "global_space",
     title: "Global Space",
     query: "space.type = global",
     icon: Icon.Globe,
     logicOperator: "AND",
   },
   {
-    id: "favourite_space",
+    value: "favourite_space",
     title: "Favourite Space",
     query: "space.type = favourite",
     icon: Icon.Star,
@@ -110,13 +110,13 @@ const CONFLUENCE_SEARCH_SPACE_FILTERS: SearchBarAccessoryItem[] = [
 
 const JIRA_SEARCH_ISSUE_FILTERS: SearchBarAccessoryItem[] = [
   {
-    id: "default",
+    value: "default",
     title: "All Issue",
     query: "",
     icon: Icon.MagnifyingGlass,
   },
   {
-    id: "full_text_search",
+    value: "full_text_search",
     title: "Text Search",
     query: "",
     icon: Icon.Text,
@@ -124,7 +124,7 @@ const JIRA_SEARCH_ISSUE_FILTERS: SearchBarAccessoryItem[] = [
     transform: (processedQuery: string) => processedQuery.replace(/summary ~ "/g, 'text ~ "'),
   },
   {
-    id: "my_open_issues",
+    value: "my_open_issues",
     title: "My Open Issues",
     query: "assignee = currentUser() AND resolution = Unresolved",
     icon: Icon.Circle,
@@ -134,7 +134,7 @@ const JIRA_SEARCH_ISSUE_FILTERS: SearchBarAccessoryItem[] = [
     sectionTitle: ({ fetchedCount, totalCount }) => `My Open Issues (${fetchedCount}/${totalCount})`,
   },
   {
-    id: "open_issues",
+    value: "open_issues",
     title: "Open Issues",
     query: "resolution = Unresolved",
     icon: Icon.Circle,
@@ -144,7 +144,7 @@ const JIRA_SEARCH_ISSUE_FILTERS: SearchBarAccessoryItem[] = [
     sectionTitle: ({ fetchedCount, totalCount }) => `Open Issues (${fetchedCount}/${totalCount})`,
   },
   {
-    id: "assigned_to_me",
+    value: "assigned_to_me",
     title: "Assigned to Me",
     query: "assignee = currentUser()",
     icon: Icon.Person,
@@ -154,7 +154,7 @@ const JIRA_SEARCH_ISSUE_FILTERS: SearchBarAccessoryItem[] = [
     sectionTitle: ({ fetchedCount, totalCount }) => `Assigned to Me (${fetchedCount}/${totalCount})`,
   },
   {
-    id: "reported_by_me",
+    value: "reported_by_me",
     title: "Reported by Me",
     query: "reporter = currentUser()",
     icon: Icon.Person,
@@ -164,7 +164,7 @@ const JIRA_SEARCH_ISSUE_FILTERS: SearchBarAccessoryItem[] = [
     sectionTitle: ({ fetchedCount, totalCount }) => `Reported by Me (${fetchedCount}/${totalCount})`,
   },
   {
-    id: "created_recently",
+    value: "created_recently",
     title: "Created Recently",
     query: "created >= -1w",
     icon: Icon.Clock,
@@ -174,7 +174,7 @@ const JIRA_SEARCH_ISSUE_FILTERS: SearchBarAccessoryItem[] = [
     sectionTitle: ({ fetchedCount, totalCount }) => `Created Recently (${fetchedCount}/${totalCount})`,
   },
   {
-    id: "updated_recently",
+    value: "updated_recently",
     title: "Updated Recently",
     query: "updated >= -1w",
     icon: Icon.Clock,
@@ -184,7 +184,7 @@ const JIRA_SEARCH_ISSUE_FILTERS: SearchBarAccessoryItem[] = [
     sectionTitle: ({ fetchedCount, totalCount }) => `Updated Recently (${fetchedCount}/${totalCount})`,
   },
   {
-    id: "resolved_recently",
+    value: "resolved_recently",
     title: "Resolved Recently",
     query: "resolutiondate >= -1w",
     icon: Icon.CheckCircle,
@@ -194,7 +194,7 @@ const JIRA_SEARCH_ISSUE_FILTERS: SearchBarAccessoryItem[] = [
     sectionTitle: ({ fetchedCount, totalCount }) => `Resolved Recently (${fetchedCount}/${totalCount})`,
   },
   {
-    id: "viewed_recently",
+    value: "viewed_recently",
     title: "Viewed Recently",
     query: "issuekey in issueHistory()",
     icon: Icon.Eye,
@@ -204,7 +204,7 @@ const JIRA_SEARCH_ISSUE_FILTERS: SearchBarAccessoryItem[] = [
     sectionTitle: ({ fetchedCount, totalCount }) => `Viewed Recently (${fetchedCount}/${totalCount})`,
   },
   {
-    id: "watched_by_me",
+    value: "watched_by_me",
     title: "Watched by Me",
     query: "watcher = currentUser()",
     icon: Icon.Eye,

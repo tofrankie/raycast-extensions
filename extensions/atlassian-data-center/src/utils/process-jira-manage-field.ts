@@ -1,11 +1,11 @@
 import { Icon } from "@raycast/api";
 
 import { CACHE_KEY } from "@/constants";
-import { customFieldCache } from "@/utils";
+import { jiraCustomFieldCache } from "@/utils";
 import type { JiraField, ListItemAccessories, ProcessedJiraFieldItem } from "@/types";
 
 export function getSelectedCustomFields(): JiraField[] {
-  const cached = customFieldCache.get(CACHE_KEY.JIRA_SELECTED_CUSTOM_FIELD);
+  const cached = jiraCustomFieldCache.get(CACHE_KEY.JIRA_SELECTED_CUSTOM_FIELD);
   return cached ? JSON.parse(cached) : [];
 }
 
@@ -15,7 +15,7 @@ export function getSelectedCustomFieldIds(): string[] {
 }
 
 export function setSelectedCustomFields(fields: JiraField[]): void {
-  customFieldCache.set(CACHE_KEY.JIRA_SELECTED_CUSTOM_FIELD, JSON.stringify(fields));
+  jiraCustomFieldCache.set(CACHE_KEY.JIRA_SELECTED_CUSTOM_FIELD, JSON.stringify(fields));
 }
 
 export function addCustomField(field: JiraField): void {

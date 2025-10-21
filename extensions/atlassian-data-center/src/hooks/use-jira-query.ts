@@ -10,6 +10,8 @@ import {
   getJiraField,
   getJiraProject,
   getJiraCurrentUser,
+  getJiraWorklog,
+  processJiraWorklog,
 } from "@/utils";
 import type {
   JiraSearchIssueResponse,
@@ -18,7 +20,9 @@ import type {
   JiraCurrentUser,
   ProcessedJiraIssueItem,
   ProcessedJiraFieldItem,
+  WorklogGroup,
 } from "@/types";
+import type { JiraWorklog } from "@/types/jira";
 
 export function useJiraSearchIssueInfiniteQuery<
   TData = { issues: ProcessedJiraIssueItem[]; hasMore: boolean; totalCount: number },
@@ -117,6 +121,25 @@ export function useJiraCurrentUserQuery<TData = JiraCurrentUser>(
   return useQuery<JiraCurrentUser, Error, TData>({
     queryKey: ["jira-current-user"],
     queryFn: getJiraCurrentUser,
+    ...queryOptions,
+  });
+}
+
+export function useJiraWorklogQuery<TData = WorklogGroup[]>(
+  { userKey, from, to }: { userKey: string | undefined; from: string; to: string },
+  queryOptions?: Partial<UseQueryOptions<JiraWorklog[], Error, TData>>,
+) {
+  return useQuery<JiraWorklog[], Error, TData>({
+    queryKey: [COMMAND_NAME.JIRA_WORKLOG, { userKey, from, to }],
+    queryFn: async () => {
+      if (!userKey) return [];
+      const data = await getJiraWorklog({ from, to, worker: [userKey] });
+      return data;
+    },
+    enabled: !!userKey,
+    select: (data) => processJiraWorklog(data) as TData,
+    staleTime: Infinity,
+    gcTime: Infinity,
     ...queryOptions,
   });
 }

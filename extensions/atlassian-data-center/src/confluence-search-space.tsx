@@ -100,7 +100,7 @@ function ConfluenceSearchSpace() {
       searchBarAccessory={
         <SearchBarAccessory
           commandName={COMMAND_NAME.CONFLUENCE_SEARCH_SPACE}
-          value={filter?.id || ""}
+          value={filter?.value || ""}
           onChange={setFilter}
         />
       }

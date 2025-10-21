@@ -15,6 +15,7 @@ export const COMMAND_NAME = {
   CONFLUENCE_SEARCH_SPACE: "confluence-search-space",
   JIRA_SEARCH_ISSUE: "jira-search-issue",
   JIRA_MANAGE_FIELD: "jira-manage-field",
+  JIRA_WORKLOG: "jira-worklog",
 } as const;
 
 export const CONFLUENCE_API = {
@@ -29,4 +30,5 @@ export const JIRA_API = {
   FIELD: "/rest/api/2/field",
   PROJECT: "/rest/api/2/project",
   CURRENT_USER: "/rest/api/2/myself",
+  WORKLOG: "/rest/tempo-timesheets/4/worklogs/search",
 } as const;

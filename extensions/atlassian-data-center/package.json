@@ -42,7 +42,8 @@
   "dependencies": {
     "@raycast/api": "^1.103.2",
     "@raycast/utils": "^1.17.0",
-    "@tanstack/react-query": "^5.90.2"
+    "@tanstack/react-query": "^5.90.2",
+    "dayjs": "^1.11.18"
   },
   "devDependencies": {
     "@raycast/eslint-config": "^2.0.4",
@@ -154,6 +155,25 @@
       "description": "Manage custom fields for Jira issue search",
       "mode": "view",
       "icon": "logo-jira.png"
+    },
+    {
+      "name": "jira-worklog",
+      "title": "Worklog",
+      "subtitle": "Jira Data Center",
+      "description": "View your worklog entries with time tracking and progress",
+      "mode": "view",
+      "icon": "logo-jira.png",
+      "preferences": [
+        {
+          "type": "textfield",
+          "name": "jiraDailyWorkHours",
+          "title": "Daily Work Hours",
+          "description": "Daily work hours for worklog progress calculation (default: 8, max 2 decimal places)",
+          "required": true,
+          "default": "8",
+          "placeholder": "8"
+        }
+      ]
     }
   ]
 }

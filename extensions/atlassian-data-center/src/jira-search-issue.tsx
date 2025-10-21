@@ -14,7 +14,7 @@ import {
   replaceQueryCurrentUser,
 } from "@/utils";
 import { IGNORE_FILTER, COMMAND_NAME, PAGINATION_SIZE, QUERY_TYPE } from "@/constants";
-import { useJiraProjectQuery, useJiraSearchIssueInfiniteQuery, useJiraCurrentUserQuery } from "@/hooks";
+import { useJiraProjectQuery, useJiraSearchIssueInfiniteQuery, useJiraCurrentUser } from "@/hooks";
 import type { ProcessedJiraIssueItem, SearchFilter } from "@/types";
 
 const ISSUE_KEY_REGEX = /^[A-Z][A-Z0-9_]+-\d+$/;
@@ -54,11 +54,11 @@ function JiraSearchIssueContent() {
 
     const buildClauseFromText = (input: string) => {
       if (ISSUE_KEY_REGEX.test(input)) {
-        return `(summary ~ "${input}" OR key in (${input}))`;
+        return `(summary ~ "${input}" OR issuekey in (${input}))`;
       }
       if (PURE_NUMBER_REGEX.test(input) && projectKeys?.length) {
         const keys = projectKeys.map((key) => `${key}-${input}`).join(", ");
-        return `(summary ~ "${input}" OR key in (${keys}))`;
+        return `(summary ~ "${input}" OR issuekey in (${keys}))`;
       }
       return `summary ~ "${input}"`;
     };
@@ -98,7 +98,7 @@ function JiraSearchIssueContent() {
     enabled: jiraIssueEnabled,
   });
 
-  const { data: currentUser, error: currentUserError } = useJiraCurrentUserQuery();
+  const { currentUser, error: currentUserError } = useJiraCurrentUser();
 
   const handleSearchTextChange = (text: string) => {
     setSearchText(text);
@@ -146,10 +146,10 @@ function JiraSearchIssueContent() {
 
   const copyJQL = async () => {
     const getFinalJQL = (issues: ProcessedJiraIssueItem[]) => {
-      // 1. Find the string with "OR key in (...)" and split it into three parts
-      const orKeyInMatch = jql.match(/(.*?)\s+OR\s+key\s+in\s*\(([^)]+)\)(.*)/i);
+      // 1. Find the string with "OR issuekey in (...)" and split it into three parts
+      const orKeyInMatch = jql.match(/(.*?)\s+OR\s+issuekey\s+in\s*\(([^)]+)\)(.*)/i);
 
-      // 2. If there is no "OR key in" part, return the original JQL
+      // 2. If there is no "OR issuekey in" part, return the original JQL
       if (!orKeyInMatch) {
         return jql;
       }
@@ -164,7 +164,7 @@ function JiraSearchIssueContent() {
       // 4. If there are no existing issue keys after filtering, this part becomes an empty string
       let filteredKeysPart = "";
       if (filteredKeys.length > 0) {
-        filteredKeysPart = ` OR key in (${filteredKeys.join(", ")})`;
+        filteredKeysPart = ` OR issuekey in (${filteredKeys.join(", ")})`;
       }
 
       // 5. Recombine the JQL from the three parts
@@ -192,7 +192,7 @@ function JiraSearchIssueContent() {
       searchBarAccessory={
         <SearchBarAccessory
           commandName={COMMAND_NAME.JIRA_SEARCH_ISSUE}
-          value={filter?.id || ""}
+          value={filter?.value || ""}
           onChange={setFilter}
         />
       }

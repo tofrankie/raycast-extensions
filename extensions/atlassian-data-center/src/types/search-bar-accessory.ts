@@ -7,7 +7,7 @@ export type SearchBarAccessoryCommandName =
   | typeof COMMAND_NAME.JIRA_SEARCH_ISSUE;
 
 export interface SearchBarAccessoryItem {
-  id: string;
+  value: string;
   title: string;
   /** Query string - CQL in Confluence, JQL in Jira */
   query: string;
@@ -23,5 +23,5 @@ export interface SearchBarAccessoryItem {
 
 export type SearchFilter = Pick<
   SearchBarAccessoryItem,
-  "id" | "query" | "transform" | "autoQuery" | "sectionTitle" | "logicOperator" | "orderBy"
+  "value" | "query" | "transform" | "autoQuery" | "sectionTitle" | "logicOperator" | "orderBy"
 >;

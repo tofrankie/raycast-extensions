@@ -46,3 +46,9 @@ export const JIRA_PRIORITY_ICON = {
   [JIRA_PRIORITY.LOWEST]: "icon-priority-lowest.svg",
   [JIRA_PRIORITY.TRIVIAL]: "icon-priority-trivial.svg",
 } as const satisfies Record<JiraPriorityType, string>;
+
+export const JIRA_WORKLOG_RANGE = {
+  DAILY: "daily",
+  WEEKLY: "weekly",
+  MONTHLY: "monthly",
+} as const;

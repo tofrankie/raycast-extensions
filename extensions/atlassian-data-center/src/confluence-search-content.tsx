@@ -150,7 +150,7 @@ function ConfluenceSearchContent() {
       searchBarAccessory={
         <SearchBarAccessory
           commandName={COMMAND_NAME.CONFLUENCE_SEARCH_CONTENT}
-          value={filter?.id || ""}
+          value={filter?.value || ""}
           onChange={setFilter}
         />
       }

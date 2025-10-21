@@ -21,5 +21,9 @@ export const CACHE_DIRECTORY = {
 } as const;
 
 export const CACHE_KEY = {
-  JIRA_SELECTED_CUSTOM_FIELD: "jira-selected-custom-field",
+  JIRA_SELECTED_CUSTOM_FIELD: "jira_selected_custom_field",
+} as const;
+
+export const CACHED_STATE_KEY = {
+  JIRA_CURRENT_USER: "jira_current_user",
 } as const;

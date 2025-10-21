@@ -64,3 +64,24 @@ export interface ProcessedJiraIssueItem extends BaseProcessedItem {
   accessories: ListItemAccessories;
   url: string;
 }
+
+export interface ProcessedWorklogItem extends BaseProcessedItem {
+  subtitle: string;
+  icon: string;
+  accessories: ListItemAccessories;
+  url: string;
+  timeSpent: string;
+  timeSpentSeconds: number;
+  comment: string;
+  date: string;
+  issueKey: string;
+}
+
+export interface WorklogGroup {
+  date: string;
+  totalTimeSpent: string;
+  totalTimeSpentSeconds: number;
+  items: ProcessedWorklogItem[];
+  title: string;
+  subtitle: string;
+}
