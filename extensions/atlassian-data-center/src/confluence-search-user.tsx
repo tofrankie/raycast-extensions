@@ -3,6 +3,7 @@ import { List, ActionPanel, Action, Icon, showToast, Toast } from "@raycast/api"
 import { showFailureToast } from "@raycast/utils";
 
 import QueryProvider from "@/query-provider";
+import { DebugActions } from "@/components";
 import { APP_TYPE, AVATAR_TYPE, PAGINATION_SIZE } from "@/constants";
 import { useConfluenceSearchUserInfiniteQuery, useAvatar } from "@/hooks";
 import { avatarExtractors, clearAllCacheWithToast } from "@/utils";
@@ -115,6 +116,7 @@ function ConfluenceSearchUser() {
                       shortcut={{ modifiers: ["cmd"], key: "r" }}
                       onAction={handleRefresh}
                     />
+                    <DebugActions />
                     <Action title="Clear Cache" icon={Icon.Trash} onAction={clearAllCacheWithToast} />
                   </ActionPanel>
                 }

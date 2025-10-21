@@ -43,21 +43,30 @@ export function processJiraWorklog(worklogs: JiraWorklog[]): WorklogGroup[] {
 function processWorklogItem(worklog: JiraWorklog): ProcessedWorklogItem {
   const { issue, timeSpent, timeSpentSeconds, comment, started } = worklog;
 
-  const url = getJiraIssueUrl(issue.key);
-  const date = dayjs(started).format("YYYY-MM-DD");
-
   const renderKey = `${worklog.tempoWorklogId}`;
   const issueTypeIcon = getIssueTypeIcon(issue.issueType) || "icon-unknown.svg";
+
+  const url = getJiraIssueUrl(issue.key);
+  const startedDayjs = dayjs(started);
+  const date = startedDayjs.format("YYYY-MM-DD");
+
+  const keywords = [
+    issue.key, // issue key
+    ...issue.key.split("-"), // project key and issue number
+    startedDayjs.format("DD"), // day of month
+    startedDayjs.format("ddd"), // day of week
+  ];
 
   const accessories: ListItemAccessories = [
     {
       tag: timeSpent,
-      tooltip: `Comment:\n${comment || "No comment"}`,
+      tooltip: `Logged Time: ${timeSpent}\nComment:\n${comment || "No comment"}`,
     },
   ];
 
   return {
     renderKey,
+    keywords,
     issueKey: issue.key,
     title: issue.summary,
     subtitle: issue.key,

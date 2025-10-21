@@ -115,10 +115,10 @@ export function useJiraProjectQuery<TData = JiraProject[]>(
   });
 }
 
-export function useJiraCurrentUserQuery<TData = JiraCurrentUser>(
-  queryOptions?: Partial<UseQueryOptions<JiraCurrentUser, Error, TData>>,
+export function useJiraCurrentUserQuery<TData = JiraCurrentUser | null>(
+  queryOptions?: Partial<UseQueryOptions<JiraCurrentUser | null, Error, TData>>,
 ) {
-  return useQuery<JiraCurrentUser, Error, TData>({
+  return useQuery<JiraCurrentUser | null, Error, TData>({
     queryKey: ["jira-current-user"],
     queryFn: getJiraCurrentUser,
     ...queryOptions,

@@ -66,6 +66,7 @@ export interface ProcessedJiraIssueItem extends BaseProcessedItem {
 }
 
 export interface ProcessedWorklogItem extends BaseProcessedItem {
+  keywords: string[];
   subtitle: string;
   icon: string;
   accessories: ListItemAccessories;

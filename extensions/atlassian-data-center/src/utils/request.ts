@@ -59,8 +59,8 @@ export async function apiRequest<T>({
       await handleHttpError(response, appType);
     }
 
-    if (response.status === 204 || response.headers.get("content-length") === "0") {
-      return undefined as T;
+    if (response.status === 204) {
+      return null as T;
     }
 
     const result = (await response.json()) as T;

@@ -3,6 +3,7 @@ import { List, ActionPanel, Action, Icon, showToast, Toast } from "@raycast/api"
 import { showFailureToast } from "@raycast/utils";
 
 import QueryProvider from "@/query-provider";
+import { DebugActions } from "@/components";
 import { useJiraFieldQuery } from "@/hooks";
 import { getSelectedCustomFields, addCustomField, removeCustomField, clearAllCacheWithToast } from "@/utils";
 import type { JiraField, ProcessedJiraFieldItem } from "@/types";
@@ -149,6 +150,7 @@ function JiraManageFieldContent() {
                           shortcut={{ modifiers: ["cmd"], key: "r" }}
                           onAction={handleRefresh}
                         />
+                        <DebugActions />
                         <Action title="Clear Cache" icon={Icon.Trash} onAction={clearAllCacheWithToast} />
                       </ActionPanel>
                     }
@@ -196,6 +198,7 @@ function JiraManageFieldContent() {
                           shortcut={{ modifiers: ["cmd"], key: "r" }}
                           onAction={handleRefresh}
                         />
+                        <DebugActions />
                         <Action title="Clear Cache" icon={Icon.Trash} onAction={clearAllCacheWithToast} />
                       </ActionPanel>
                     }
@@ -217,6 +220,7 @@ function JiraManageFieldContent() {
                   actions={
                     <ActionPanel>
                       <Action.CopyToClipboard title="Copy Field ID" content={item.id} />
+                      <DebugActions />
                       <Action title="Clear Cache" icon={Icon.Trash} onAction={clearAllCacheWithToast} />
                     </ActionPanel>
                   }

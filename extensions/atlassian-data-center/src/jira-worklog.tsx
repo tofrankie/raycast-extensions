@@ -3,7 +3,7 @@ import { List, ActionPanel, Action, Icon, showToast, Toast } from "@raycast/api"
 import { showFailureToast } from "@raycast/utils";
 
 import QueryProvider from "@/query-provider";
-import { QueryWrapper } from "@/components";
+import { QueryWrapper, DebugActions } from "@/components";
 import { clearAllCacheWithToast, copyToClipboardWithToast } from "@/utils";
 import { QUERY_TYPE, JIRA_WORKLOG_RANGE } from "@/constants";
 import { useJiraWorklogQuery, useJiraCurrentUser } from "@/hooks";
@@ -12,15 +12,13 @@ import { getDateRange } from "@/utils";
 interface WorklogFilter {
   value: string;
   title: string;
-  from: string;
-  to: string;
   icon: Icon;
 }
 
 const timeRanges: WorklogFilter[] = [
-  { value: JIRA_WORKLOG_RANGE.DAILY, title: "Today", from: "", to: "", icon: Icon.Clock },
-  { value: JIRA_WORKLOG_RANGE.WEEKLY, title: "This Week", from: "", to: "", icon: Icon.Calendar },
-  { value: JIRA_WORKLOG_RANGE.MONTHLY, title: "This Month", from: "", to: "", icon: Icon.Calendar },
+  { value: JIRA_WORKLOG_RANGE.DAILY, title: "Today", icon: Icon.Clock },
+  { value: JIRA_WORKLOG_RANGE.WEEKLY, title: "This Week", icon: Icon.Calendar },
+  { value: JIRA_WORKLOG_RANGE.MONTHLY, title: "This Month", icon: Icon.Calendar },
 ];
 
 export default function JiraWorklogProvider() {
@@ -32,11 +30,11 @@ export default function JiraWorklogProvider() {
 }
 
 function JiraWorklogContent() {
-  const [selectedRangeType, setSelectedRangeType] = useState<string>(JIRA_WORKLOG_RANGE.WEEKLY);
+  const [selectedRangeType, setSelectedRangeType] = useState<string>("");
 
   const { currentUser, error: currentUserError } = useJiraCurrentUser();
 
-  const { from, to } = useMemo(() => getDateRange(selectedRangeType), [selectedRangeType]);
+  const { from, to } = useMemo(() => getDateRange(selectedRangeType || JIRA_WORKLOG_RANGE.WEEKLY), [selectedRangeType]);
 
   const {
     data: worklogGroups = [],
@@ -84,9 +82,10 @@ function JiraWorklogContent() {
   return (
     <List
       throttle
+      searchBarPlaceholder="Search Worklog..."
       isLoading={isLoading}
       searchBarAccessory={
-        <List.Dropdown tooltip="Select Time Range" value={selectedRangeType} onChange={setSelectedRangeType}>
+        <List.Dropdown tooltip="Select Time Range" value={selectedRangeType} onChange={setSelectedRangeType} storeValue>
           {timeRanges.map((item) => (
             <List.Dropdown.Item key={item.value} title={item.title} value={item.value} icon={item.icon} />
           ))}
@@ -96,8 +95,8 @@ function JiraWorklogContent() {
       <QueryWrapper query="" queryType={QUERY_TYPE.JQL}>
         {isEmpty ? (
           <List.EmptyView
-            icon={Icon.Clock}
-            title="No Worklog Found"
+            icon={Icon.MagnifyingGlass}
+            title="No Results"
             description="No worklog entries found for the selected time range"
             actions={
               <ActionPanel>
@@ -111,9 +110,10 @@ function JiraWorklogContent() {
               {group.items.map((item) => (
                 <List.Item
                   key={item.renderKey}
+                  keywords={item.keywords}
+                  icon={item.icon}
                   title={item.title}
                   subtitle={item.subtitle}
-                  icon={item.icon}
                   accessories={item.accessories}
                   actions={
                     <ActionPanel>
@@ -125,6 +125,7 @@ function JiraWorklogContent() {
                         shortcut={{ modifiers: ["cmd"], key: "r" }}
                         onAction={handleRefresh}
                       />
+                      <DebugActions />
                       <Action title="Clear Cache" icon={Icon.Trash} onAction={clearAllCacheWithToast} />
                     </ActionPanel>
                   }

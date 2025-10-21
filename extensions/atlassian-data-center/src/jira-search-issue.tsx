@@ -3,7 +3,7 @@ import { List, ActionPanel, Action, Icon, showToast, Toast } from "@raycast/api"
 import { showFailureToast } from "@raycast/utils";
 
 import QueryProvider from "@/query-provider";
-import { SearchBarAccessory, QueryWrapper } from "@/components";
+import { SearchBarAccessory, QueryWrapper, DebugActions } from "@/components";
 import {
   clearAllCacheWithToast,
   getSectionTitle,
@@ -248,6 +248,7 @@ function JiraSearchIssueContent() {
                       shortcut={{ modifiers: ["cmd"], key: "r" }}
                       onAction={handleRefresh}
                     />
+                    <DebugActions />
                     <Action title="Clear Cache" icon={Icon.Trash} onAction={clearAllCacheWithToast} />
                   </ActionPanel>
                 }

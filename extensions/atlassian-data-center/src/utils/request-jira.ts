@@ -41,7 +41,7 @@ export async function getJiraProject(): Promise<JiraProject[]> {
   return data || [];
 }
 
-export async function getJiraCurrentUser(): Promise<JiraCurrentUser> {
+export async function getJiraCurrentUser(): Promise<JiraCurrentUser | null> {
   const data = await jiraRequest<JiraCurrentUser>("GET", JIRA_API.CURRENT_USER);
 
   if (data) {

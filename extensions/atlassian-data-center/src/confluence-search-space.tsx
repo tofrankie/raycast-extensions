@@ -6,7 +6,7 @@ import QueryProvider from "@/query-provider";
 import { avatarExtractors, clearAllCacheWithToast, processUserInputAndFilter, buildQuery } from "@/utils";
 import { IGNORE_FILTER, QUERY_TYPE } from "@/constants";
 import { APP_TYPE, AVATAR_TYPE, COMMAND_NAME, PAGINATION_SIZE } from "@/constants";
-import { SearchBarAccessory, QueryWrapper } from "@/components";
+import { SearchBarAccessory, QueryWrapper, DebugActions } from "@/components";
 import { useConfluenceSearchSpaceInfiniteQuery, useAvatar } from "@/hooks";
 import type { SearchFilter } from "@/types";
 
@@ -153,6 +153,7 @@ function ConfluenceSearchSpace() {
                         shortcut={{ modifiers: ["cmd"], key: "r" }}
                         onAction={handleRefresh}
                       />
+                      <DebugActions />
                       <Action title="Clear Cache" icon={Icon.Trash} onAction={clearAllCacheWithToast} />
                     </ActionPanel>
                   }

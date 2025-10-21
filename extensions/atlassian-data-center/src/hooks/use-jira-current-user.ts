@@ -1,4 +1,4 @@
-import { useCachedState } from "@raycast/utils";
+import { showFailureToast, useCachedState } from "@raycast/utils";
 
 import { useJiraCurrentUserQuery } from "@/hooks";
 import { CACHED_STATE_KEY } from "@/constants";
@@ -16,6 +16,13 @@ export function useJiraCurrentUser() {
   useEffect(() => {
     if (queryResult.data) {
       setCurrentUser(queryResult.data);
+      return;
+    }
+
+    if (queryResult.isSuccess) {
+      showFailureToast(new Error("Expected response body, but got 204"), {
+        title: "Failed to Load User",
+      });
     }
   }, [queryResult.data]);
 
