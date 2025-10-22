@@ -1,5 +1,5 @@
 import { jiraRequest, writeResponseFile } from "@/utils";
-import { JIRA_API, COMMAND_NAME, JIRA_BASE_URL } from "@/constants";
+import { JIRA_API, COMMAND_NAME } from "@/constants";
 import type { JiraSearchIssueResponse, JiraField, JiraProject, JiraCurrentUser, JiraWorklog } from "@/types";
 
 type JiraSearchIssueParams = {
@@ -49,10 +49,6 @@ export async function getJiraCurrentUser(): Promise<JiraCurrentUser | null> {
   }
 
   return data;
-}
-
-export function getJiraIssueUrl(issueKey: string): string {
-  return `${JIRA_BASE_URL}/browse/${issueKey}`;
 }
 
 type JiraWorklogParams = {

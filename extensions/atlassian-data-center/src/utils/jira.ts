@@ -1,4 +1,4 @@
-import { JIRA_ISSUE_TYPE_ICON } from "@/constants";
+import { JIRA_BASE_URL, JIRA_ISSUE_TYPE_ICON } from "@/constants";
 
 export function getIssueTypeIcon(issueType: string): string | undefined {
   if (isBuiltInIssueType(issueType, JIRA_ISSUE_TYPE_ICON)) {
@@ -26,4 +26,12 @@ function isBuiltInIssueType<T extends Record<string, string>>(
   iconMap: T,
 ): issueType is keyof T & string {
   return issueType in iconMap;
+}
+
+export function getJiraIssueUrl(issueKey: string): string {
+  return `${JIRA_BASE_URL}/browse/${issueKey}`;
+}
+
+export function getJiraIssueEditUrl(issueId: string): string {
+  return `${JIRA_BASE_URL}/secure/EditIssue!default.jspa?id=${issueId}`;
 }

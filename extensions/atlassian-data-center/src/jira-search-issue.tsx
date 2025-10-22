@@ -226,6 +226,7 @@ function JiraSearchIssueContent() {
                 actions={
                   <ActionPanel>
                     <Action.OpenInBrowser title="Open in Browser" url={item.url} />
+                    <Action.OpenInBrowser icon={Icon.Pencil} title="Edit in Browser" url={item.editUrl} />
                     <Action.CopyToClipboard
                       title="Copy URL"
                       shortcut={{ modifiers: ["cmd"], key: "c" }}

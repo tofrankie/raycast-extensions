@@ -1,5 +1,5 @@
 import { JIRA_PRIORITY_ICON } from "@/constants";
-import { getIssueTypeIcon, getJiraIssueUrl, getSelectedCustomFields } from "@/utils";
+import { getIssueTypeIcon, getJiraIssueEditUrl, getJiraIssueUrl, getSelectedCustomFields } from "@/utils";
 import type { JiraIssue, JiraUser, ProcessedJiraIssueItem, ListItemAccessories, ListItemSubtitle } from "@/types";
 
 export function processJiraSearchIssue(issue: JiraIssue, names?: Record<string, string>): ProcessedJiraIssueItem {
@@ -9,6 +9,7 @@ export function processJiraSearchIssue(issue: JiraIssue, names?: Record<string, 
   const issueType = fields.issuetype?.name || "Task";
 
   const url = getJiraIssueUrl(key);
+  const editUrl = getJiraIssueEditUrl(id);
 
   const issueTypeIcon = getIssueTypeIcon(issueType);
   const icon = {
@@ -41,6 +42,7 @@ export function processJiraSearchIssue(issue: JiraIssue, names?: Record<string, 
     subtitle,
     accessories,
     url,
+    editUrl,
   };
 }
 
