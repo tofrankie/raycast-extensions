@@ -70,13 +70,13 @@ export const useToggleFavorite = () => {
       }
     },
     onMutate: async ({ contentId, isFavorited }) => {
-      // 取消所有正在进行的查询，避免冲突
+      // Cancel all ongoing queries to avoid conflicts
       await queryClient.cancelQueries({ queryKey: [COMMAND_NAME.CONFLUENCE_SEARCH_CONTENT] });
 
-      // 获取当前查询的缓存数据
+      // Get the current cached data of the query
       const previousData = queryClient.getQueriesData({ queryKey: [COMMAND_NAME.CONFLUENCE_SEARCH_CONTENT] });
 
-      // 乐观更新所有相关的查询缓存
+      // Optimistically update all related query caches
       queryClient.setQueriesData(
         { queryKey: [COMMAND_NAME.CONFLUENCE_SEARCH_CONTENT] },
         (old: InfiniteData<ConfluenceSearchContentResponse> | undefined) => {
@@ -108,11 +108,11 @@ export const useToggleFavorite = () => {
         },
       );
 
-      // 返回上下文，用于错误回滚
+      // Return context for error rollback
       return { previousData };
     },
     onError: (err, variables, context) => {
-      // 发生错误时回滚到之前的状态
+      // Rollback to previous state on error
       if (context?.previousData) {
         context.previousData.forEach(([queryKey, data]) => {
           queryClient.setQueryData(queryKey, data);
@@ -120,7 +120,7 @@ export const useToggleFavorite = () => {
       }
     },
     onSettled: () => {
-      // 无论成功还是失败，都重新获取数据以确保一致性
+      // Re-fetch data to ensure consistency regardless of success or failure
       queryClient.invalidateQueries({ queryKey: [COMMAND_NAME.CONFLUENCE_SEARCH_CONTENT] });
     },
   });

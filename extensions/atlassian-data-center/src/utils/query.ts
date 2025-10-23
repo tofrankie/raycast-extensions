@@ -89,7 +89,7 @@ export function combineClauses(params: CombineClausesParams): string {
 }
 
 function joinClauses(clauses: string[], logicOperator: LogicOperator): string {
-  return clauses.map((clause) => `(${clause})`).join(` ${logicOperator} `);
+  return clauses.map((clause) => `(${clause.trim()})`).join(` ${logicOperator} `);
 }
 
 function normalizeSpaces(input: string): string {

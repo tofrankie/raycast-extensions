@@ -11,7 +11,7 @@ describe("Query Builder", () => {
         queryType: "JQL",
       });
 
-      expect(result).toBe("project = 'TEST' AND status = 'Open'");
+      expect(result).toBe("(project = 'TEST') AND (status = 'Open')");
     });
 
     it("should build a query with OR operator", () => {
@@ -21,14 +21,14 @@ describe("Query Builder", () => {
         queryType: "JQL",
       });
 
-      expect(result).toBe("project = 'TEST' OR assignee = currentUser()");
+      expect(result).toBe("(project = 'TEST') OR (assignee = currentUser())");
     });
 
     it("should build a query with ORDER BY", () => {
       const result = buildQuery({
         clauses: ["project = 'TEST'"],
         logicOperator: "AND",
-        orderBy: " ORDER BY created DESC",
+        orderBy: "created DESC",
         queryType: "JQL",
       });
 
@@ -62,7 +62,7 @@ describe("Query Builder", () => {
         queryType: "JQL",
       });
 
-      expect(result).toBe("project = 'TEST' AND status = 'Open'");
+      expect(result).toBe("(project = 'TEST') AND (status = 'Open')");
     });
   });
 
@@ -127,7 +127,7 @@ describe("Query Builder", () => {
 
       expect(typeof result).toBe("object");
       if (typeof result === "object") {
-        expect(result.clauses).toEqual(['text ~ "test"', ""]);
+        expect(result.clauses).toEqual(['text ~ "test"']);
         expect(result.logicOperator).toBe("AND");
       }
     });

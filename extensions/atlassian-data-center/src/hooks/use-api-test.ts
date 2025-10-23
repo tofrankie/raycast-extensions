@@ -4,13 +4,9 @@ import { CURRENT_BASE_URL, CURRENT_PAT } from "@/constants";
 import { getAuthHeaders, writeResponseFile } from "@/utils";
 
 const FETCH_CONFIG = {
-  method: "POST" as "GET" | "POST" | "PUT",
-  endpoint: "/rest/tempo-timesheets/4/worklogs/search",
-  params: {
-    from: "2025-08-04",
-    to: "2025-08-10",
-    worker: ["JIRAUSER15518"],
-  },
+  method: "GET" as "GET" | "POST" | "PUT",
+  endpoint: "/rest/api/2/myself",
+  params: {},
 } as const;
 
 export function useApiTest() {
