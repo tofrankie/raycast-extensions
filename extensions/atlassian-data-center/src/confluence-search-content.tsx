@@ -191,7 +191,12 @@ function ConfluenceSearchContent() {
                     <ActionPanel>
                       <Action.OpenInBrowser title="Open in Browser" url={item.url} />
                       {item.canEdit && (
-                        <Action.OpenInBrowser icon={Icon.Pencil} title="Edit in Browser" url={item.editUrl} />
+                        <Action.OpenInBrowser
+                          icon={Icon.Pencil}
+                          title="Edit in Browser"
+                          url={item.editUrl}
+                          shortcut={{ modifiers: ["cmd"], key: "e" }}
+                        />
                       )}
                       <Action.CopyToClipboard
                         title="Copy Link"

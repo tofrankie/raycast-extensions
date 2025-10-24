@@ -1,6 +1,14 @@
 import { jiraRequest, handleApiResponse } from "@/utils";
 import { JIRA_API, COMMAND_NAME } from "@/constants";
-import type { JiraSearchIssueResponse, JiraField, JiraProject, JiraCurrentUser, JiraWorklog } from "@/types";
+import type {
+  JiraSearchIssueResponse,
+  JiraField,
+  JiraProject,
+  JiraCurrentUser,
+  JiraWorklog,
+  JiraIssue,
+  JiraTransitionResponse,
+} from "@/types";
 
 type JiraSearchIssueParams = {
   jql: string;
@@ -71,5 +79,46 @@ export async function getJiraWorklog(params: JiraWorklogParams): Promise<JiraWor
     data,
     fileName: COMMAND_NAME.JIRA_WORKLOG,
     defaultValue: [],
+  });
+}
+
+export async function getJiraIssue(issueKey: string): Promise<JiraIssue> {
+  const endpoint = JIRA_API.ISSUE.replace("{issueIdOrKey}", issueKey);
+  const data = await jiraRequest<JiraIssue>({ method: "GET", endpoint });
+
+  return handleApiResponse({
+    data,
+    fileName: "jira-issue",
+    defaultValue: {} as JiraIssue,
+  });
+}
+
+export async function getJiraIssueTransitions(issueKey: string): Promise<JiraTransitionResponse> {
+  const endpoint = JIRA_API.ISSUE_TRANSITIONS.replace("{issueIdOrKey}", issueKey);
+  const data = await jiraRequest<JiraTransitionResponse>({ method: "GET", endpoint });
+
+  return handleApiResponse({
+    data,
+    fileName: "jira-issue-transitions",
+    defaultValue: {
+      expand: "transitions",
+      transitions: [],
+    },
+  });
+}
+
+export async function transitionJiraIssue(issueKey: string, transitionId: string): Promise<void> {
+  const params: Record<string, unknown> = {
+    transition: {
+      id: transitionId,
+    },
+  };
+
+  const endpoint = JIRA_API.ISSUE_TRANSITIONS.replace("{issueIdOrKey}", issueKey);
+
+  await jiraRequest<void>({
+    method: "POST",
+    endpoint,
+    params,
   });
 }

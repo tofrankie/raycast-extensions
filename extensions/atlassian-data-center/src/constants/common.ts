@@ -31,4 +31,6 @@ export const JIRA_API = {
   PROJECT: "/rest/api/2/project",
   CURRENT_USER: "/rest/api/2/myself",
   WORKLOG: "/rest/tempo-timesheets/4/worklogs/search",
+  ISSUE: "/rest/api/2/issue/{issueIdOrKey}",
+  ISSUE_TRANSITIONS: "/rest/api/2/issue/{issueIdOrKey}/transitions",
 } as const;

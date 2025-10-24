@@ -112,6 +112,9 @@ export interface JiraStatus {
   description: string;
   iconUrl: string;
   name: string;
+  /**
+   * Issue Status ID
+   */
   id: string;
   statusCategory: {
     self: string;
@@ -195,4 +198,24 @@ export interface JiraWorklog {
   dateCreated: string;
   dateUpdated: string;
   originId: number;
+}
+
+export interface JiraTransition {
+  /**
+   * Transition ID
+   */
+  id: string;
+  name: string;
+  to: JiraStatus;
+}
+
+export interface JiraTransitionResponse {
+  expand: string;
+  transitions: JiraTransition[];
+}
+
+export interface JiraIssueTransitionRequest {
+  transition: {
+    id: string;
+  };
 }

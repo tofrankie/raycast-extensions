@@ -4,6 +4,9 @@ import { showFailureToast } from "@raycast/utils";
 
 import QueryProvider from "@/query-provider";
 import { SearchBarAccessory, QueryWrapper, DebugActions } from "@/components";
+import { JiraIssueTransition } from "@/pages";
+import { IGNORE_FILTER, COMMAND_NAME, PAGINATION_SIZE, QUERY_TYPE } from "@/constants";
+import { useJiraProjectQuery, useJiraSearchIssueInfiniteQuery, useJiraCurrentUser } from "@/hooks";
 import {
   clearAllCacheWithToast,
   getSectionTitle,
@@ -13,8 +16,6 @@ import {
   copyToClipboardWithToast,
   replaceQueryCurrentUser,
 } from "@/utils";
-import { IGNORE_FILTER, COMMAND_NAME, PAGINATION_SIZE, QUERY_TYPE } from "@/constants";
-import { useJiraProjectQuery, useJiraSearchIssueInfiniteQuery, useJiraCurrentUser } from "@/hooks";
 import type { ProcessedJiraIssueItem, SearchFilter } from "@/types";
 
 const ISSUE_KEY_REGEX = /^[A-Z][A-Z0-9_]+-\d+$/;
@@ -226,7 +227,18 @@ function JiraSearchIssueContent() {
                 actions={
                   <ActionPanel>
                     <Action.OpenInBrowser title="Open in Browser" url={item.url} />
-                    <Action.OpenInBrowser icon={Icon.Pencil} title="Edit in Browser" url={item.editUrl} />
+                    <Action.OpenInBrowser
+                      icon={Icon.Pencil}
+                      title="Edit in Browser"
+                      url={item.editUrl}
+                      shortcut={{ modifiers: ["cmd"], key: "e" }}
+                    />
+                    <Action.Push
+                      title="Transition Status"
+                      target={<JiraIssueTransition issueKey={item.key} onUpdate={handleRefresh} />}
+                      icon={Icon.ArrowRight}
+                      shortcut={{ modifiers: ["cmd"], key: "t" }}
+                    />
                     <Action.CopyToClipboard
                       title="Copy URL"
                       shortcut={{ modifiers: ["cmd"], key: "c" }}

@@ -2,10 +2,15 @@ import { useEffect } from "react";
 
 import { apiRequest, handleApiResponse } from "@/utils";
 
-const CONFIG = {
-  method: "GET" as "GET" | "POST" | "PUT",
+type RequestParams = {
+  method: "GET" | "POST" | "PUT" | "DELETE";
+  endpoint: string;
+  params?: Record<string, unknown>;
+};
+
+const CONFIG: RequestParams = {
+  method: "GET",
   endpoint: "/rest/api/2/myself",
-  params: {},
 } as const;
 
 export function useApiTest() {
