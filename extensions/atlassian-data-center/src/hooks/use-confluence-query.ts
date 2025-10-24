@@ -33,8 +33,7 @@ export const useConfluenceSearchContentInfiniteQuery = <
     queryKey: [COMMAND_NAME.CONFLUENCE_SEARCH_CONTENT, { cql, pageSize: PAGINATION_SIZE }],
     queryFn: async ({ pageParam }) => {
       const start = pageParam as number;
-      const response = await searchContent(cql, PAGINATION_SIZE, start);
-      return response;
+      return await searchContent({ cql, limit: PAGINATION_SIZE, start });
     },
     select: (data) => {
       const items = data.pages.flatMap((page) => processConfluenceSearchContentItems(page.results));
@@ -64,9 +63,9 @@ export const useToggleFavorite = () => {
   return useMutation({
     mutationFn: async ({ contentId, isFavorited }: { contentId: string; isFavorited: boolean }) => {
       if (isFavorited) {
-        await removeFromFavorite(contentId);
+        await removeFromFavorite({ contentId });
       } else {
-        await addToFavorite(contentId);
+        await addToFavorite({ contentId });
       }
     },
     onMutate: async ({ contentId, isFavorited }) => {
@@ -137,8 +136,7 @@ export const useConfluenceSearchUserInfiniteQuery = <
     queryKey: [COMMAND_NAME.CONFLUENCE_SEARCH_USER, { cql, pageSize: PAGINATION_SIZE }],
     queryFn: async ({ pageParam }) => {
       const start = pageParam as number;
-      const response = await searchUser(cql, PAGINATION_SIZE, start);
-      return response;
+      return await searchUser({ cql, limit: PAGINATION_SIZE, start });
     },
     select: (data) => {
       const allResults = data.pages.flatMap((page) => page.results.filter((result) => result.user));
@@ -182,8 +180,7 @@ export const useConfluenceSearchSpaceInfiniteQuery = <
     queryKey: [COMMAND_NAME.CONFLUENCE_SEARCH_SPACE, { cql, pageSize: PAGINATION_SIZE }],
     queryFn: async ({ pageParam }) => {
       const start = pageParam as number;
-      const response = await searchSpace(cql, PAGINATION_SIZE, start);
-      return response;
+      return await searchSpace({ cql, limit: PAGINATION_SIZE, start });
     },
     select: (data) => {
       const allResults = data.pages.flatMap((page) => page.results.filter((result) => result.space));
@@ -215,10 +212,10 @@ export const useConfluenceSearchSpaceInfiniteQuery = <
   });
 };
 
-export function useConfluenceCurrentUserQuery<TData = ConfluenceCurrentUser>(
-  queryOptions?: Partial<UseQueryOptions<ConfluenceCurrentUser, Error, TData>>,
+export function useConfluenceCurrentUserQuery<TData = ConfluenceCurrentUser | null>(
+  queryOptions?: Partial<UseQueryOptions<ConfluenceCurrentUser | null, Error, TData>>,
 ) {
-  return useQuery<ConfluenceCurrentUser, Error, TData>({
+  return useQuery<ConfluenceCurrentUser | null, Error, TData>({
     queryKey: ["confluence-current-user"],
     queryFn: getConfluenceCurrentUser,
     staleTime: Infinity,

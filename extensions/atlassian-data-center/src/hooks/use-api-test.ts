@@ -1,9 +1,8 @@
 import { useEffect } from "react";
 
-import { CURRENT_BASE_URL, CURRENT_PAT } from "@/constants";
-import { getAuthHeaders, writeResponseFile } from "@/utils";
+import { apiRequest, handleApiResponse } from "@/utils";
 
-const FETCH_CONFIG = {
+const CONFIG = {
   method: "GET" as "GET" | "POST" | "PUT",
   endpoint: "/rest/api/2/myself",
   params: {},
@@ -16,43 +15,13 @@ export function useApiTest() {
 }
 
 async function fetchApi() {
-  const { endpoint, method, params } = FETCH_CONFIG;
+  const { endpoint, method, params } = CONFIG;
 
   if (!endpoint) return;
 
   try {
-    const url = new URL(endpoint, CURRENT_BASE_URL);
-
-    const requestOptions: RequestInit = {
-      method,
-      headers: getAuthHeaders(CURRENT_PAT),
-    };
-
-    if (method === "GET") {
-      if (params) {
-        Object.entries(params).forEach(([key, value]) => {
-          url.searchParams.append(key, String(value));
-        });
-      }
-    } else if (method === "POST" || method === "PUT") {
-      if (params) {
-        requestOptions.body = JSON.stringify(params);
-        requestOptions.headers = {
-          ...requestOptions.headers,
-          "Content-Type": "application/json",
-        };
-      }
-    }
-
-    const response = await fetch(url.toString(), requestOptions);
-
-    if (!response.ok) {
-      throw new Error(`HTTP error: ${response.status} ${response.statusText}`);
-    }
-
-    const result = await response.json();
-
-    writeResponseFile(JSON.stringify(result, null, 2), "test");
+    const data = await apiRequest({ method, endpoint, params });
+    handleApiResponse({ data, fileName: "test", defaultValue: null });
   } catch (err) {
     console.error("❌ Fetch Test Error:", err);
   }

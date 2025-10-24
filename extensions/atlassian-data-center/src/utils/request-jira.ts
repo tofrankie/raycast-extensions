@@ -1,4 +1,4 @@
-import { jiraRequest, writeResponseFile } from "@/utils";
+import { jiraRequest, handleApiResponse } from "@/utils";
 import { JIRA_API, COMMAND_NAME } from "@/constants";
 import type { JiraSearchIssueResponse, JiraField, JiraProject, JiraCurrentUser, JiraWorklog } from "@/types";
 
@@ -12,43 +12,50 @@ type JiraSearchIssueParams = {
 };
 
 export async function searchJiraIssue(params: JiraSearchIssueParams): Promise<JiraSearchIssueResponse> {
-  const data = await jiraRequest<JiraSearchIssueResponse>("GET", JIRA_API.SEARCH, params);
+  const data = await jiraRequest<JiraSearchIssueResponse>({ method: "GET", endpoint: JIRA_API.SEARCH, params });
 
-  if (data) {
-    writeResponseFile(JSON.stringify(data, null, 2), COMMAND_NAME.JIRA_SEARCH_ISSUE);
-  }
-
-  return data;
+  return handleApiResponse({
+    data,
+    fileName: COMMAND_NAME.JIRA_SEARCH_ISSUE,
+    defaultValue: {
+      expand: "schema,names",
+      startAt: 0,
+      maxResults: 20,
+      total: 0,
+      issues: [] as JiraSearchIssueResponse["issues"],
+      names: {},
+    },
+  });
 }
 
 export async function getJiraField(): Promise<JiraField[]> {
-  const data = await jiraRequest<JiraField[]>("GET", JIRA_API.FIELD);
+  const data = await jiraRequest<JiraField[]>({ method: "GET", endpoint: JIRA_API.FIELD });
 
-  if (data) {
-    writeResponseFile(JSON.stringify(data, null, 2), COMMAND_NAME.JIRA_MANAGE_FIELD);
-  }
-
-  return data || [];
+  return handleApiResponse({
+    data,
+    fileName: COMMAND_NAME.JIRA_MANAGE_FIELD,
+    defaultValue: [],
+  });
 }
 
 export async function getJiraProject(): Promise<JiraProject[]> {
-  const data = await jiraRequest<JiraProject[]>("GET", JIRA_API.PROJECT);
+  const data = await jiraRequest<JiraProject[]>({ method: "GET", endpoint: JIRA_API.PROJECT });
 
-  if (data) {
-    writeResponseFile(JSON.stringify(data, null, 2), "jira-project");
-  }
-
-  return data || [];
+  return handleApiResponse({
+    data,
+    fileName: "jira-project",
+    defaultValue: [],
+  });
 }
 
 export async function getJiraCurrentUser(): Promise<JiraCurrentUser | null> {
-  const data = await jiraRequest<JiraCurrentUser>("GET", JIRA_API.CURRENT_USER);
+  const data = await jiraRequest<JiraCurrentUser>({ method: "GET", endpoint: JIRA_API.CURRENT_USER });
 
-  if (data) {
-    writeResponseFile(JSON.stringify(data, null, 2), "jira-current-user");
-  }
-
-  return data;
+  return handleApiResponse({
+    data,
+    fileName: "jira-current-user",
+    defaultValue: null,
+  });
 }
 
 type JiraWorklogParams = {
@@ -58,11 +65,11 @@ type JiraWorklogParams = {
 };
 
 export async function getJiraWorklog(params: JiraWorklogParams): Promise<JiraWorklog[]> {
-  const data = await jiraRequest<JiraWorklog[]>("POST", JIRA_API.WORKLOG, params);
+  const data = await jiraRequest<JiraWorklog[]>({ method: "POST", endpoint: JIRA_API.WORKLOG, params });
 
-  if (data) {
-    writeResponseFile(JSON.stringify(data, null, 2), COMMAND_NAME.JIRA_WORKLOG);
-  }
-
-  return data || [];
+  return handleApiResponse({
+    data,
+    fileName: COMMAND_NAME.JIRA_WORKLOG,
+    defaultValue: [],
+  });
 }

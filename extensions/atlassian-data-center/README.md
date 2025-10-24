@@ -4,7 +4,7 @@ A Raycast extension for Atlassian Data Center products, providing search capabil
 
 ## ⚙️ Setup Required
 
-This extension integrates with your Atlassian applications using Personal Access Tokens (PATs), which are a secure way to authenticate external applications. [Learn more](https://confluence.atlassian.com/enterprise/using-personal-access-tokens-1026032365.html)
+This extension integrates with your Atlassian applications using Personal Access Token (PAT), which are a secure way to authenticate external applications. [Learn more](https://confluence.atlassian.com/enterprise/using-personal-access-tokens-1026032365.html)
 
 > [!IMPORTANT]
 > Keep your Personal Access Token secure. If compromised, revoke it immediately.
