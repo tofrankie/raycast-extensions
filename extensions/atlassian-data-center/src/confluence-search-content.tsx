@@ -51,7 +51,7 @@ function ConfluenceSearchContent() {
     const result = processUserInputAndFilter({
       userInput: trimmedText,
       filter: effectiveFilter,
-      buildClauseFromText: (input) => `text ~ "${input}"`,
+      buildClauseFromText: (input) => `title ~ "${input}"`,
       queryType: "CQL",
     });
 
@@ -146,7 +146,7 @@ function ConfluenceSearchContent() {
       throttle
       isLoading={isLoading}
       onSearchTextChange={setSearchText}
-      searchBarPlaceholder="Search Content..."
+      searchBarPlaceholder="Search Contents..."
       searchBarAccessory={
         <SearchBarAccessory
           commandName={COMMAND_NAME.CONFLUENCE_SEARCH_CONTENT}

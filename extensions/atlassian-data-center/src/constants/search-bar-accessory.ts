@@ -7,9 +7,17 @@ import type { SearchBarAccessoryItem, SearchBarAccessoryCommandName } from "@/ty
 const CONFLUENCE_SEARCH_CONTENT_FILTERS: SearchBarAccessoryItem[] = [
   {
     value: "default",
-    title: "All Content",
+    title: "All Contents",
     query: "",
     icon: Icon.MagnifyingGlass,
+  },
+  {
+    value: "full_text_search",
+    title: "Full Text Search",
+    query: "",
+    icon: Icon.Text,
+    logicOperator: "AND",
+    transform: (processedQuery: string) => processedQuery.replace(/title ~ "/g, 'text ~ "'),
   },
   {
     value: "viewed_recently",
@@ -69,21 +77,50 @@ const CONFLUENCE_SEARCH_CONTENT_FILTERS: SearchBarAccessoryItem[] = [
     sectionTitle: ({ fetchedCount, totalCount }) => `Watched by Me (${fetchedCount}/${totalCount})`,
   },
   {
-    value: "title_only",
-    title: "Title Only",
-    query: "",
-    icon: Icon.Text,
+    value: "content_type_page",
+    title: "Pages Only",
+    query: "type = page",
+    icon: Icon.Receipt,
     logicOperator: "AND",
-    transform: (processedQuery: string) => processedQuery.replace(/text ~ "/g, 'title ~ "'),
+  },
+  {
+    value: "content_type_blogpost",
+    title: "Blogs Only",
+    query: "type = blogpost",
+    icon: Icon.QuotationMarks,
+    logicOperator: "AND",
+  },
+  {
+    value: "content_type_comment",
+    title: "Comments Only",
+    query: "type = comment",
+    icon: Icon.Bubble,
+    logicOperator: "AND",
+    transform: (processedQuery: string) => processedQuery.replace(/title ~ "/g, 'text ~ "'),
+  },
+  {
+    value: "content_type_attachment",
+    title: "Attachments Only",
+    query: "type = attachment",
+    icon: Icon.Paperclip,
+    logicOperator: "AND",
+    transform: (processedQuery: string) => processedQuery.replace(/title ~ "/g, 'text ~ "'),
   },
 ];
 
 const CONFLUENCE_SEARCH_SPACE_FILTERS: SearchBarAccessoryItem[] = [
   {
     value: "default",
-    title: "All Space",
+    title: "All Spaces",
     query: "",
     icon: Icon.MagnifyingGlass,
+  },
+  {
+    value: "favourite_space",
+    title: "Favourite Space",
+    query: "space.type = favourite",
+    icon: Icon.Star,
+    logicOperator: "AND",
   },
   {
     value: "personal_space",
@@ -99,25 +136,18 @@ const CONFLUENCE_SEARCH_SPACE_FILTERS: SearchBarAccessoryItem[] = [
     icon: Icon.Globe,
     logicOperator: "AND",
   },
-  {
-    value: "favourite_space",
-    title: "Favourite Space",
-    query: "space.type = favourite",
-    icon: Icon.Star,
-    logicOperator: "AND",
-  },
 ];
 
 const JIRA_SEARCH_ISSUE_FILTERS: SearchBarAccessoryItem[] = [
   {
     value: "default",
-    title: "All Issue",
+    title: "All Issues",
     query: "",
     icon: Icon.MagnifyingGlass,
   },
   {
     value: "full_text_search",
-    title: "Text Search",
+    title: "Full Text Search",
     query: "",
     icon: Icon.Text,
     logicOperator: "AND",

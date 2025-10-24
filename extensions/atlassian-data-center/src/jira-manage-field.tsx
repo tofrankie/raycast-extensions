@@ -107,7 +107,7 @@ function JiraManageFieldContent() {
   };
 
   return (
-    <List throttle isLoading={isLoading} onSearchTextChange={setSearchText} searchBarPlaceholder="Search Field...">
+    <List throttle isLoading={isLoading} onSearchTextChange={setSearchText} searchBarPlaceholder="Search Fields...">
       {noFieldsAvailable || noFilteredResults ? (
         <List.EmptyView
           icon={Icon.MagnifyingGlass}

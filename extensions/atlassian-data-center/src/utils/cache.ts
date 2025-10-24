@@ -24,7 +24,7 @@ export async function clearAllCacheWithToast() {
 export async function clearAllCache() {
   clearAllRaycastCache();
   await clearCacheDirectories();
-  console.log("🚀 ~ All cache cleared successfully");
+  console.log("🚀 ~ All cache cleared");
 }
 
 /**

@@ -82,7 +82,7 @@ function JiraWorklogContent() {
   return (
     <List
       throttle
-      searchBarPlaceholder="Search Worklog..."
+      searchBarPlaceholder="Search Worklogs..."
       isLoading={isLoading}
       searchBarAccessory={
         <List.Dropdown tooltip="Select Time Range" value={selectedRangeType} onChange={setSelectedRangeType} storeValue>

@@ -73,7 +73,7 @@ function ConfluenceSearchUser() {
       throttle
       isLoading={isLoading}
       onSearchTextChange={setSearchText}
-      searchBarPlaceholder="Search User..."
+      searchBarPlaceholder="Search Users..."
       pagination={{
         hasMore: data.hasMore,
         onLoadMore: handleLoadMore,
