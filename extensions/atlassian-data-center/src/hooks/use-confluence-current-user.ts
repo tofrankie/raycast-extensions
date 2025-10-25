@@ -1,14 +1,17 @@
 import { useEffect } from "react";
 import { showFailureToast, useCachedState } from "@raycast/utils";
 
-import { useJiraCurrentUserQuery } from "@/hooks";
+import { useConfluenceCurrentUserQuery } from "@/hooks";
 import { CACHE_KEY } from "@/constants";
-import type { JiraCurrentUser } from "@/types";
+import type { ConfluenceCurrentUser } from "@/types";
 
-export function useJiraCurrentUser() {
-  const [currentUser, setCurrentUser] = useCachedState<JiraCurrentUser | null>(CACHE_KEY.JIRA_CURRENT_USER, null);
+export function useConfluenceCurrentUser() {
+  const [currentUser, setCurrentUser] = useCachedState<ConfluenceCurrentUser | null>(
+    CACHE_KEY.CONFLUENCE_CURRENT_USER,
+    null,
+  );
 
-  const queryResult = useJiraCurrentUserQuery({ enabled: !currentUser });
+  const queryResult = useConfluenceCurrentUserQuery({ enabled: !currentUser });
 
   useEffect(() => {
     if (queryResult.data) {

@@ -4,8 +4,8 @@ import { showFailureToast } from "@raycast/utils";
 
 import QueryProvider from "@/query-provider";
 import { DebugActions } from "@/components";
-import { APP_TYPE, AVATAR_TYPE, PAGINATION_SIZE } from "@/constants";
-import { useConfluenceSearchUserInfiniteQuery, useAvatar } from "@/hooks";
+import { AVATAR_TYPE, PAGINATION_SIZE } from "@/constants";
+import { useConfluenceSearchUserInfiniteQuery, useAvatar, useConfluenceCurrentUser } from "@/hooks";
 import { avatarExtractors, clearAllCacheWithToast } from "@/utils";
 
 const EMPTY_INFINITE_DATA = { items: [], hasMore: false, totalCount: 0 };
@@ -20,6 +20,7 @@ export default function ConfluenceSearchUserProvider() {
 
 function ConfluenceSearchUser() {
   const [searchText, setSearchText] = useState("");
+  useConfluenceCurrentUser();
 
   const cql = useMemo(() => {
     if (!searchText) return "";
@@ -38,7 +39,6 @@ function ConfluenceSearchUser() {
 
   useAvatar({
     items: data.items,
-    appType: APP_TYPE.CONFLUENCE,
     avatarType: AVATAR_TYPE.CONFLUENCE_USER,
     extractAvatarData: avatarExtractors.confluenceUser,
   });

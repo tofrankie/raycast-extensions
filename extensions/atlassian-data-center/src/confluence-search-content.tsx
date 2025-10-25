@@ -4,12 +4,12 @@ import { showFailureToast } from "@raycast/utils";
 
 import QueryProvider from "@/query-provider";
 import { SearchBarAccessory, QueryWrapper, DebugActions } from "@/components";
-import { IGNORE_FILTER, APP_TYPE, AVATAR_TYPE, COMMAND_NAME, PAGINATION_SIZE, QUERY_TYPE } from "@/constants";
+import { IGNORE_FILTER, AVATAR_TYPE, COMMAND_NAME, PAGINATION_SIZE, QUERY_TYPE } from "@/constants";
 import {
   useConfluenceSearchContentInfiniteQuery,
   useToggleFavorite,
   useAvatar,
-  useConfluenceCurrentUserQuery,
+  useConfluenceCurrentUser,
 } from "@/hooks";
 import {
   clearAllCacheWithToast,
@@ -76,7 +76,7 @@ function ConfluenceSearchContent() {
     refetch,
   } = useConfluenceSearchContentInfiniteQuery(cql);
 
-  const { data: currentUser, error: currentUserError } = useConfluenceCurrentUserQuery();
+  const { currentUser, error: currentUserError } = useConfluenceCurrentUser();
 
   const toggleFavorite = useToggleFavorite();
 
@@ -92,7 +92,6 @@ function ConfluenceSearchContent() {
 
   useAvatar({
     items: data.items,
-    appType: APP_TYPE.CONFLUENCE,
     avatarType: AVATAR_TYPE.CONFLUENCE_USER,
     extractAvatarData: avatarExtractors.confluenceContentCreator,
   });

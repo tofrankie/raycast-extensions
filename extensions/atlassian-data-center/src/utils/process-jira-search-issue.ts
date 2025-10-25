@@ -68,7 +68,7 @@ function buildSubtitle(
     tooltipParts.push(`Assignee: ${assignee}`);
   }
 
-  // TODO: 支持更多类型的自定义字段
+  // TODO: Support more types of custom fields
   if (customFieldValue) {
     Object.entries(customFieldValue).forEach(([fieldId, value]) => {
       const fieldName = names?.[fieldId] || fieldId;

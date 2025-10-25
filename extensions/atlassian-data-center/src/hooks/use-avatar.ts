@@ -1,21 +1,19 @@
 import { useMemo } from "react";
 import { useQueries } from "@tanstack/react-query";
 
-import { CURRENT_PAT } from "@/constants";
+import { CURRENT_APP_TYPE, CURRENT_PAT } from "@/constants";
 import { avatarCache, downloadAvatar } from "@/utils";
-import type { AvatarList, AppType, AvatarType } from "@/types";
+import type { AvatarList, AvatarType } from "@/types";
 
-export function useAvatar<T>({
-  items,
-  extractAvatarData,
-  appType,
-  avatarType,
-}: {
+type UseAvatarOptions<T> = {
   items: T[];
-  appType: AppType;
   avatarType: AvatarType;
   extractAvatarData: (items: T[]) => AvatarList;
-}) {
+};
+
+export function useAvatar<T>(options: UseAvatarOptions<T>) {
+  const { items, extractAvatarData, avatarType } = options;
+
   const avatarList = useMemo(() => extractAvatarData(items), [items, extractAvatarData]);
 
   const uniqueList = useMemo(() => {
@@ -26,7 +24,7 @@ export function useAvatar<T>({
 
   const queries = useMemo(() => {
     return uniqueList.map((item) => ({
-      queryKey: [`${appType}-avatar`, { url: item.url }],
+      queryKey: [`${CURRENT_APP_TYPE}-avatar`, { url: item.url }],
       queryFn: async () => {
         return downloadAvatar({
           token: CURRENT_PAT,
@@ -38,7 +36,7 @@ export function useAvatar<T>({
       staleTime: Infinity,
       gcTime: Infinity,
     }));
-  }, [uniqueList, appType]);
+  }, [uniqueList]);
 
   useQueries({ queries });
 }

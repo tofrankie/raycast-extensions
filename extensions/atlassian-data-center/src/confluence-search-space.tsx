@@ -5,7 +5,7 @@ import { showFailureToast } from "@raycast/utils";
 import QueryProvider from "@/query-provider";
 import { avatarExtractors, clearAllCacheWithToast, processUserInputAndFilter, buildQuery } from "@/utils";
 import { IGNORE_FILTER, QUERY_TYPE } from "@/constants";
-import { APP_TYPE, AVATAR_TYPE, COMMAND_NAME, PAGINATION_SIZE } from "@/constants";
+import { AVATAR_TYPE, COMMAND_NAME, PAGINATION_SIZE } from "@/constants";
 import { SearchBarAccessory, QueryWrapper, DebugActions } from "@/components";
 import { useConfluenceSearchSpaceInfiniteQuery, useAvatar } from "@/hooks";
 import type { SearchFilter } from "@/types";
@@ -76,7 +76,6 @@ function ConfluenceSearchSpace() {
 
   useAvatar({
     items: data.items,
-    appType: APP_TYPE.CONFLUENCE,
     avatarType: AVATAR_TYPE.CONFLUENCE_SPACE,
     extractAvatarData: avatarExtractors.confluenceSpace,
   });

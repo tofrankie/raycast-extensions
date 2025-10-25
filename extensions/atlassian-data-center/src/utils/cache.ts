@@ -1,6 +1,6 @@
 import path from "node:path";
 import fs from "node:fs/promises";
-import { Cache, showToast, Toast } from "@raycast/api";
+import { Cache, popToRoot, showToast, Toast } from "@raycast/api";
 
 import { CACHE_DIRECTORY, DEBUG_ENABLE } from "@/constants";
 import { pathExists, ensureDirExists, clearDirExistsCache } from "@/utils";
@@ -13,8 +13,11 @@ export const jiraCustomFieldCache = createCache();
 
 export const jiraCurrentUserCache = createCache();
 
+export const confluenceCurrentUserCache = createCache();
+
 export async function clearAllCacheWithToast() {
   await clearAllCache();
+  popToRoot();
   showToast(Toast.Style.Success, "Cache Cleared");
 }
 

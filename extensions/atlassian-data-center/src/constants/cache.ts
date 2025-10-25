@@ -6,8 +6,8 @@ import type { AvatarType } from "@/types";
 export const DEFAULT_AVATAR = "avatar-default.svg";
 
 export const AVATAR_TYPE = {
-  CONFLUENCE_USER: "confluence-user",
-  CONFLUENCE_SPACE: "confluence-space",
+  CONFLUENCE_USER: "confluence_user",
+  CONFLUENCE_SPACE: "confluence_space",
 } as const;
 
 export const AVATAR_DIR = {
@@ -22,8 +22,6 @@ export const CACHE_DIRECTORY = {
 
 export const CACHE_KEY = {
   JIRA_SELECTED_CUSTOM_FIELD: "jira_selected_custom_field",
-} as const;
-
-export const CACHED_STATE_KEY = {
   JIRA_CURRENT_USER: "jira_current_user",
+  CONFLUENCE_CURRENT_USER: "confluence_current_user",
 } as const;

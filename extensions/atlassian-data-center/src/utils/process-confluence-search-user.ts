@@ -1,20 +1,26 @@
 import { Image } from "@raycast/api";
 
-import { avatarCache } from "@/utils";
+import { avatarCache, confluenceCurrentUserCache } from "@/utils";
 import {
   CONFLUENCE_BASE_URL,
   CONFLUENCE_ENTITY_TYPE,
   CONFLUENCE_USER_STATUS,
   DEFAULT_AVATAR,
   CONFLUENCE_TYPE_ICON,
+  CACHE_KEY,
 } from "@/constants";
-import type { ConfluenceSearchResult, ProcessedConfluenceUserItem } from "@/types";
+import type { ConfluenceSearchResult, ProcessedConfluenceUserItem, ConfluenceCurrentUser } from "@/types";
 
 export function processConfluenceSearchUserItems(items: ConfluenceSearchResult[]): ProcessedConfluenceUserItem[] {
-  return items.map((item) => processConfluenceSearchUserItem(item));
+  const cachedCurrentUser = confluenceCurrentUserCache.get(CACHE_KEY.CONFLUENCE_CURRENT_USER);
+  const currentUser = cachedCurrentUser ? JSON.parse(cachedCurrentUser) : null;
+  return items.map((item) => processConfluenceSearchUserItem(item, currentUser));
 }
 
-function processConfluenceSearchUserItem(item: ConfluenceSearchResult): ProcessedConfluenceUserItem {
+function processConfluenceSearchUserItem(
+  item: ConfluenceSearchResult,
+  currentUser: ConfluenceCurrentUser | null,
+): ProcessedConfluenceUserItem {
   const user = item.user!;
 
   const title = user.displayName;
@@ -33,15 +39,19 @@ function processConfluenceSearchUserItem(item: ConfluenceSearchResult): Processe
       }
     : CONFLUENCE_TYPE_ICON[CONFLUENCE_ENTITY_TYPE.USER];
 
-  // TODO: 打开空间主页
+  // TODO: Open user space homepage
   const url = `${CONFLUENCE_BASE_URL}${item.url}`;
 
   const subtitle = { value: username, tooltip: `Username` };
 
-  const accessories =
-    user.status !== CONFLUENCE_USER_STATUS.CURRENT
+  const isCurrentUser = currentUser?.userKey === userKey;
+
+  const accessories = [
+    ...(user.status !== CONFLUENCE_USER_STATUS.CURRENT
       ? [{ text: user.status.charAt(0).toUpperCase() + user.status.slice(1), tooltip: "User Status" }]
-      : undefined;
+      : []),
+    ...(isCurrentUser ? [{ text: "You", tooltip: "Current User" }] : []),
+  ];
 
   return {
     renderKey: userKey,
