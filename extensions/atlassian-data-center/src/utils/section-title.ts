@@ -7,11 +7,8 @@ interface SectionTitleParams {
 
 /**
  * Generate section title based on filter configuration
- * @param filter - The selected search filter
- * @param params - Parameters containing fetchedCount and totalCount
- * @returns The generated section title
  */
-export function getSectionTitle(filter: SearchFilter | null, params: SectionTitleParams): string {
+export function getSectionTitle(filter: SearchFilter | null | undefined, params: SectionTitleParams): string {
   if (filter?.sectionTitle) {
     if (typeof filter.sectionTitle === "string") {
       return filter.sectionTitle;

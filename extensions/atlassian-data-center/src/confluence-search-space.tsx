@@ -3,8 +3,8 @@ import { List, ActionPanel, Action, Icon, showToast, Toast } from "@raycast/api"
 import { showFailureToast } from "@raycast/utils";
 
 import QueryProvider from "@/query-provider";
-import { avatarExtractors, clearAllCacheWithToast, processUserInputAndFilter, buildQuery } from "@/utils";
-import { IGNORE_FILTER, QUERY_TYPE } from "@/constants";
+import { avatarExtractors, clearAllCacheWithToast, processUserInputAndFilter, buildQuery, isJQL } from "@/utils";
+import { QUERY_TYPE } from "@/constants";
 import { AVATAR_TYPE, COMMAND_NAME, PAGINATION_SIZE } from "@/constants";
 import { SearchBarAccessory, QueryWrapper, DebugActions } from "@/components";
 import { useConfluenceSearchSpaceInfiniteQuery, useAvatar } from "@/hooks";
@@ -25,28 +25,34 @@ function ConfluenceSearchSpace() {
   const [filter, setFilter] = useState<SearchFilter | null>(null);
 
   const cql = useMemo(() => {
-    if (!searchText) return "";
+    const trimmedText = searchText.trim();
+    let filterForQuery: SearchFilter | null | undefined = filter;
 
-    const effectiveFilter = IGNORE_FILTER ? undefined : filter || undefined;
-    const result = processUserInputAndFilter({
-      userInput: searchText,
-      filter: effectiveFilter,
-      buildClauseFromText: (input) => `space.title ~ "${input}"`,
-      queryType: "CQL",
-    });
-
-    if (typeof result === "string") {
-      return result;
+    if (!trimmedText && !filter?.autoQuery) {
+      return "";
     }
 
-    const finalResult = buildQuery({
-      ...result,
-      clauses: [...result.clauses, "type = space"],
-      orderBy: result.orderBy || "lastmodified DESC",
-      queryType: "CQL",
+    const isJQLUserInput = isJQL(trimmedText);
+    if (isJQLUserInput && filter) {
+      filterForQuery = undefined;
+    }
+
+    const processedCQL = processUserInputAndFilter({
+      userInput: trimmedText,
+      filter: filterForQuery,
+      buildClauseFromText: (input) => `type = space AND space.title ~ "${input}"`,
+      queryType: QUERY_TYPE.CQL,
     });
 
-    return finalResult;
+    if (typeof processedCQL === "string") {
+      return processedCQL;
+    }
+
+    return buildQuery({
+      ...processedCQL,
+      orderBy: processedCQL.orderBy || "lastmodified DESC, created DESC",
+      queryType: QUERY_TYPE.CQL,
+    });
   }, [searchText, filter]);
 
   const {

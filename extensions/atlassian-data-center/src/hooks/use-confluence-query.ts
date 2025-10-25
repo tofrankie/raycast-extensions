@@ -29,7 +29,7 @@ export const useConfluenceSearchContentInfiniteQuery = <
   queryOptions?: Partial<UseInfiniteQueryOptions<ConfluenceSearchContentResponse, Error, TData>>,
 ) => {
   return useInfiniteQuery<ConfluenceSearchContentResponse, Error, TData>({
-    enabled: cql.length >= 2,
+    enabled: !!cql,
     queryKey: [COMMAND_NAME.CONFLUENCE_SEARCH_CONTENT, { cql, pageSize: PAGINATION_SIZE }],
     queryFn: async ({ pageParam }) => {
       const start = pageParam as number;
@@ -53,6 +53,7 @@ export const useConfluenceSearchContentInfiniteQuery = <
       return nextPageParam;
     },
     staleTime: 60 * 1000,
+    gcTime: 2 * 60 * 1000,
     ...queryOptions,
   });
 };
@@ -132,7 +133,7 @@ export const useConfluenceSearchUserInfiniteQuery = <
   queryOptions?: Partial<UseInfiniteQueryOptions<ConfluenceSearchResponse, Error, TData>>,
 ) => {
   return useInfiniteQuery<ConfluenceSearchResponse, Error, TData>({
-    enabled: cql.length >= 2,
+    enabled: !!cql,
     queryKey: [COMMAND_NAME.CONFLUENCE_SEARCH_USER, { cql, pageSize: PAGINATION_SIZE }],
     queryFn: async ({ pageParam }) => {
       const start = pageParam as number;
@@ -165,6 +166,7 @@ export const useConfluenceSearchUserInfiniteQuery = <
       return nextPageParam;
     },
     staleTime: 60 * 1000,
+    gcTime: 2 * 60 * 1000,
     ...queryOptions,
   });
 };
@@ -176,7 +178,7 @@ export const useConfluenceSearchSpaceInfiniteQuery = <
   queryOptions?: Partial<UseInfiniteQueryOptions<ConfluenceSearchResponse, Error, TData>>,
 ) => {
   return useInfiniteQuery<ConfluenceSearchResponse, Error, TData>({
-    enabled: cql.length >= 2,
+    enabled: !!cql,
     queryKey: [COMMAND_NAME.CONFLUENCE_SEARCH_SPACE, { cql, pageSize: PAGINATION_SIZE }],
     queryFn: async ({ pageParam }) => {
       const start = pageParam as number;
@@ -208,6 +210,7 @@ export const useConfluenceSearchSpaceInfiniteQuery = <
       return nextPageParam;
     },
     staleTime: 60 * 1000,
+    gcTime: 2 * 60 * 1000,
     ...queryOptions,
   });
 };

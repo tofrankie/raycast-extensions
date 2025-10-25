@@ -4,9 +4,9 @@ import { showFailureToast } from "@raycast/utils";
 
 import QueryProvider from "@/query-provider";
 import { DebugActions } from "@/components";
-import { AVATAR_TYPE, PAGINATION_SIZE } from "@/constants";
+import { AVATAR_TYPE, PAGINATION_SIZE, QUERY_TYPE } from "@/constants";
 import { useConfluenceSearchUserInfiniteQuery, useAvatar, useConfluenceCurrentUser } from "@/hooks";
-import { avatarExtractors, clearAllCacheWithToast } from "@/utils";
+import { avatarExtractors, buildQuery, clearAllCacheWithToast, processUserInputAndFilter } from "@/utils";
 
 const EMPTY_INFINITE_DATA = { items: [], hasMore: false, totalCount: 0 };
 
@@ -23,8 +23,24 @@ function ConfluenceSearchUser() {
   useConfluenceCurrentUser();
 
   const cql = useMemo(() => {
-    if (!searchText) return "";
-    return `user.fullname ~ "${searchText}" AND type = user`;
+    const trimmedText = searchText.trim();
+    if (!trimmedText) return "";
+
+    const processedCQL = processUserInputAndFilter({
+      userInput: trimmedText,
+      buildClauseFromText: (input) => `user.fullname ~ "${input}" AND type = user`,
+      queryType: QUERY_TYPE.CQL,
+    });
+
+    if (typeof processedCQL === "string") {
+      return processedCQL;
+    }
+
+    return buildQuery({
+      ...processedCQL,
+      orderBy: processedCQL.orderBy || "lastmodified DESC, created DESC",
+      queryType: QUERY_TYPE.CQL,
+    });
   }, [searchText]);
 
   const {

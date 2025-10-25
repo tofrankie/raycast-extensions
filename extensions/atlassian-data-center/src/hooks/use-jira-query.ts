@@ -81,9 +81,9 @@ export function useJiraSearchIssueInfiniteQuery<
       }
       return undefined;
     },
-    enabled: jql.length >= 2,
-    staleTime: 5 * 60 * 1000, // 5 minutes
-    refetchOnWindowFocus: false,
+    enabled: !!jql,
+    staleTime: 60 * 1000,
+    gcTime: 2 * 60 * 1000,
     ...queryOptions,
   });
 }

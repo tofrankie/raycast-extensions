@@ -4,7 +4,7 @@ import { showFailureToast } from "@raycast/utils";
 
 import QueryProvider from "@/query-provider";
 import { SearchBarAccessory, QueryWrapper, DebugActions } from "@/components";
-import { IGNORE_FILTER, AVATAR_TYPE, COMMAND_NAME, PAGINATION_SIZE, QUERY_TYPE } from "@/constants";
+import { AVATAR_TYPE, COMMAND_NAME, PAGINATION_SIZE, QUERY_TYPE, CONFLUENCE_SEARCH_CONTENT_FILTERS } from "@/constants";
 import {
   useConfluenceSearchContentInfiniteQuery,
   useToggleFavorite,
@@ -19,11 +19,12 @@ import {
   buildQuery,
   copyToClipboardWithToast,
   replaceQueryCurrentUser,
+  isCQL,
 } from "@/utils";
-
 import type { SearchFilter } from "@/types";
 
 const EMPTY_INFINITE_DATA = { items: [], hasMore: false, totalCount: 0 };
+const DEFAULT_FILTER = CONFLUENCE_SEARCH_CONTENT_FILTERS.find((item) => item.value === "viewed_recently");
 
 export default function ConfluenceSearchContentProvider() {
   return (
@@ -37,33 +38,43 @@ function ConfluenceSearchContent() {
   const [searchText, setSearchText] = useState("");
   const [filter, setFilter] = useState<SearchFilter | null>(null);
 
-  const cql = useMemo(() => {
+  const { cql, filterForQuery } = useMemo(() => {
     const trimmedText = searchText.trim();
+    let filterForQuery: SearchFilter | null | undefined = filter;
 
-    if (!trimmedText && filter?.autoQuery) {
-      return filter.query;
-    }
-    if (trimmedText.length < 2) {
-      return "";
+    // If input is too short and filter is not auto-query, treat it as no input
+    if (trimmedText.length < 2 && filter && !filter.autoQuery) {
+      return { cql: "", filterForQuery };
     }
 
-    const effectiveFilter = IGNORE_FILTER ? undefined : filter || undefined;
-    const result = processUserInputAndFilter({
+    // If no input and "All Contents" is selected, show recently viewed by default
+    const withoutUserInputAndFilter = !trimmedText && !filter;
+    filterForQuery = withoutUserInputAndFilter ? DEFAULT_FILTER : filter;
+
+    // If input is a CQL, ignore filter constraint
+    const isCQLUserInput = isCQL(trimmedText);
+    if (isCQLUserInput && filter) {
+      filterForQuery = undefined;
+    }
+
+    const processedCQL = processUserInputAndFilter({
       userInput: trimmedText,
-      filter: effectiveFilter,
+      filter: filterForQuery,
       buildClauseFromText: (input) => `title ~ "${input}"`,
-      queryType: "CQL",
+      queryType: QUERY_TYPE.CQL,
     });
 
-    if (typeof result === "string") {
-      return result;
+    if (typeof processedCQL === "string") {
+      return { cql: processedCQL, filterForQuery };
     }
 
-    return buildQuery({
-      ...result,
-      orderBy: result.orderBy || "lastmodified DESC",
-      queryType: "CQL",
+    const finalCQL = buildQuery({
+      ...processedCQL,
+      orderBy: processedCQL.orderBy || "lastmodified DESC, created DESC",
+      queryType: QUERY_TYPE.CQL,
     });
+
+    return { cql: finalCQL, filterForQuery };
   }, [searchText, filter]);
 
   const {
@@ -124,18 +135,18 @@ function ConfluenceSearchContent() {
   };
 
   const copyCQL = () => {
-    let finalCQL = cql;
+    let replacedCQL = cql;
 
     if (currentUser?.username) {
-      finalCQL = replaceQueryCurrentUser(finalCQL, currentUser.username);
+      replacedCQL = replaceQueryCurrentUser(replacedCQL, currentUser.username);
     }
 
-    copyToClipboardWithToast(finalCQL);
+    copyToClipboardWithToast(replacedCQL);
   };
 
   const isEmpty = isSuccess && !data.items.length;
 
-  const sectionTitle = getSectionTitle(filter, {
+  const sectionTitle = getSectionTitle(filterForQuery, {
     fetchedCount: data.items.length,
     totalCount: data?.totalCount || 0,
   });

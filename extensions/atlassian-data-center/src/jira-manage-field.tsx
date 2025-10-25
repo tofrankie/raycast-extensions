@@ -29,8 +29,9 @@ function JiraManageFieldContent() {
   }, []);
 
   const { addedFieldsFiltered, systemFields, customFields } = useMemo(() => {
+    const trimmedText = searchText.trim();
     const allFields = data ?? [];
-    const searchRegex = new RegExp(searchText.replace(/[.*+?^${}()|[\]\\]/g, "\\$&"), "i");
+    const searchRegex = new RegExp(trimmedText.replace(/[.*+?^${}()|[\]\\]/g, "\\$&"), "i");
     const filteredFields = allFields.filter((item) => {
       if (searchRegex.test(item.title)) {
         return true;

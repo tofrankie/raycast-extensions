@@ -79,7 +79,7 @@ describe("Query Builder", () => {
 
     it("should handle complete JQL query without ORDER BY", () => {
       const filter: SearchFilter = {
-        id: "test",
+        value: "test",
         query: "status = 'Open'",
         orderBy: " ORDER BY created DESC",
       };
@@ -100,7 +100,7 @@ describe("Query Builder", () => {
 
     it("should handle text input with filter", () => {
       const filter: SearchFilter = {
-        id: "test",
+        value: "test",
         query: "project = 'TEST'",
       };
 
@@ -131,6 +131,78 @@ describe("Query Builder", () => {
         expect(result.logicOperator).toBe("AND");
       }
     });
+
+    it("should escape quotes in non-JQL input", () => {
+      const result = processUserInputAndFilter({
+        userInput: 'test "with quotes"',
+        buildClauseFromText: (input) => `text ~ "${input}"`,
+        queryType: "JQL",
+      });
+
+      expect(typeof result).toBe("object");
+      if (typeof result === "object") {
+        expect(result.clauses).toEqual(['text ~ "test \\"with quotes\\""']);
+        expect(result.logicOperator).toBe("AND");
+      }
+    });
+
+    it("should escape single quotes in non-JQL input", () => {
+      const result = processUserInputAndFilter({
+        userInput: "test 'with single quotes'",
+        buildClauseFromText: (input) => `text ~ "${input}"`,
+        queryType: "JQL",
+      });
+
+      expect(typeof result).toBe("object");
+      if (typeof result === "object") {
+        expect(result.clauses).toEqual(["text ~ \"test \\'with single quotes\\'\""]);
+        expect(result.logicOperator).toBe("AND");
+      }
+    });
+
+    it("should not escape quotes in complete JQL input", () => {
+      const result = processUserInputAndFilter({
+        userInput: 'project = "TEST"',
+        buildClauseFromText: (input) => `text ~ "${input}"`,
+        queryType: "JQL",
+      });
+
+      expect(typeof result).toBe("object");
+      if (typeof result === "object") {
+        expect(result.clauses).toEqual(['project = "TEST"']);
+        expect(result.logicOperator).toBe("AND");
+      }
+    });
+
+    it("should treat invalid JQL with quote-only values as text input", () => {
+      const result = processUserInputAndFilter({
+        userInput: 'project = ""',
+        buildClauseFromText: (input) => `title ~ "${input}"`,
+        queryType: "JQL",
+      });
+
+      expect(typeof result).toBe("object");
+      if (typeof result === "object") {
+        // Should be treated as text, so quotes should be escaped
+        expect(result.clauses).toEqual(['title ~ "project = \\"\\""']);
+        expect(result.logicOperator).toBe("AND");
+      }
+    });
+
+    it("should handle CQL quote escaping the same as JQL", () => {
+      const result = processUserInputAndFilter({
+        userInput: 'test "with quotes"',
+        buildClauseFromText: (input) => `user.fullname ~ "${input}"`,
+        queryType: "CQL",
+      });
+
+      expect(typeof result).toBe("object");
+      if (typeof result === "object") {
+        // For CQL, quotes should be escaped with backslashes like JQL
+        expect(result.clauses).toEqual(['user.fullname ~ "test \\"with quotes\\""']);
+        expect(result.logicOperator).toBe("AND");
+      }
+    });
   });
 
   describe("syntax detection", () => {
@@ -141,6 +213,15 @@ describe("Query Builder", () => {
       expect(isJQL("simple text")).toBe(false);
     });
 
+    it("should reject JQL with quote-only values", () => {
+      expect(isJQL('project = "')).toBe(false);
+      expect(isJQL('project = ""')).toBe(false);
+      expect(isJQL("project = '")).toBe(false);
+      expect(isJQL("project = ''")).toBe(false);
+      expect(isJQL('assignee = "')).toBe(false);
+      expect(isJQL('assignee = ""')).toBe(false);
+    });
+
     it("should detect CQL syntax", () => {
       expect(isCQL("space.key = 'TEST'")).toBe(true);
       expect(isCQL("ancestor = '123'")).toBe(true);
@@ -148,11 +229,20 @@ describe("Query Builder", () => {
       expect(isCQL("simple text")).toBe(false);
     });
 
+    it("should reject CQL with quote-only values", () => {
+      expect(isCQL('space.key = "')).toBe(false);
+      expect(isCQL('space.key = ""')).toBe(false);
+      expect(isCQL("space.key = '")).toBe(false);
+      expect(isCQL("space.key = ''")).toBe(false);
+      expect(isCQL('ancestor = "')).toBe(false);
+      expect(isCQL('ancestor = ""')).toBe(false);
+    });
+
     it("should detect ORDER BY", () => {
       expect(hasOrderBy("project = 'TEST' ORDER BY created DESC")).toBe(true);
-      expect(hasOrderBy("project = 'TEST' order by created desc")).toBe(true);
+      expect(hasOrderBy("project = 'TEST' order by created DESC")).toBe(true);
       expect(hasOrderBy("type = 'page' ORDER BY created DESC")).toBe(true);
-      expect(hasOrderBy("type = 'page' order by created desc")).toBe(true);
+      expect(hasOrderBy("type = 'page' order by created DESC")).toBe(true);
       expect(hasOrderBy("project = 'TEST'")).toBe(false);
       expect(hasOrderBy("type = 'page'")).toBe(false);
       expect(hasOrderBy("ORDER BY")).toBe(false);

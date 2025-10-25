@@ -35,3 +35,17 @@ export function getJiraIssueUrl(issueKey: string): string {
 export function getJiraIssueEditUrl(issueId: string): string {
   return `${JIRA_BASE_URL}/secure/EditIssue!default.jspa?id=${issueId}`;
 }
+
+/**
+ * Check if input may be a Jira issue key (e.g., "DEV-123")
+ */
+export function isIssueKey(input: string): boolean {
+  return /^[A-Z][A-Z0-9_]*-\d+$/.test(input);
+}
+
+/**
+ * Check if input may be an issue number (e.g., "123" from "DEV-123")
+ */
+export function isIssueNumber(input: string): boolean {
+  return /^\d+$/.test(input);
+}

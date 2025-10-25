@@ -5,23 +5,21 @@ import { showFailureToast } from "@raycast/utils";
 import QueryProvider from "@/query-provider";
 import { SearchBarAccessory, QueryWrapper, DebugActions } from "@/components";
 import { JiraIssueTransition } from "@/pages";
-import { IGNORE_FILTER, COMMAND_NAME, PAGINATION_SIZE, QUERY_TYPE } from "@/constants";
+import { COMMAND_NAME, PAGINATION_SIZE, QUERY_TYPE, JIRA_SEARCH_ISSUE_FILTERS } from "@/constants";
 import { useJiraProjectQuery, useJiraSearchIssueInfiniteQuery, useJiraCurrentUser } from "@/hooks";
 import {
   clearAllCacheWithToast,
   getSectionTitle,
   processUserInputAndFilter,
   buildQuery,
-  isJQL,
   copyToClipboardWithToast,
   replaceQueryCurrentUser,
 } from "@/utils";
+import { isIssueKey, isIssueNumber } from "@/utils/jira";
 import type { ProcessedJiraIssueItem, SearchFilter } from "@/types";
 
-const ISSUE_KEY_REGEX = /^[A-Z][A-Z0-9_]+-\d+$/;
-const PURE_NUMBER_REGEX = /^\d+$/;
-
 const EMPTY_INFINITE_DATA = { issues: [], hasMore: false, totalCount: 0 };
+const DEFAULT_FILTER = JIRA_SEARCH_ISSUE_FILTERS.find((item) => item.value === "open_issues");
 
 export default function JiraSearchIssueProvider() {
   return (
@@ -43,47 +41,53 @@ function JiraSearchIssueContent() {
     select: (list) => list.map((item) => item.key),
   });
 
-  const jql = useMemo(() => {
+  const { jql, filterForQuery } = useMemo(() => {
     const trimmedText = searchText.trim();
 
-    if (!trimmedText.length && !filter?.autoQuery) {
-      return "";
+    let filterForQuery: SearchFilter | null | undefined = filter;
+
+    // If input is too short and filter is not auto-query, treat it as no input
+    if (!trimmedText && filter && !filter.autoQuery) {
+      return { jql: "", filterForQuery };
     }
 
-    const isJQLUserInput = isJQL(trimmedText);
-    const effectiveFilter = (IGNORE_FILTER && isJQLUserInput) || !filter ? undefined : filter;
+    // If no input and "All Issues" is selected, show open issues by default
+    const withoutUserInputAndFilter = !trimmedText && !filter;
+    filterForQuery = withoutUserInputAndFilter ? DEFAULT_FILTER : filter;
 
     const buildClauseFromText = (input: string) => {
-      if (ISSUE_KEY_REGEX.test(input)) {
+      if (isIssueKey(input)) {
         return `(summary ~ "${input}" OR issuekey in (${input}))`;
       }
-      if (PURE_NUMBER_REGEX.test(input) && projectKeys?.length) {
+      if (isIssueNumber(input) && projectKeys?.length) {
         const keys = projectKeys.map((key) => `${key}-${input}`).join(", ");
         return `(summary ~ "${input}" OR issuekey in (${keys}))`;
       }
       return `summary ~ "${input}"`;
     };
 
-    const result = processUserInputAndFilter({
+    const processedJQL = processUserInputAndFilter({
       userInput: trimmedText,
-      filter: effectiveFilter,
+      filter: filterForQuery,
       buildClauseFromText,
-      queryType: "JQL",
+      queryType: QUERY_TYPE.JQL,
     });
 
-    if (typeof result === "string") {
-      return result;
+    if (typeof processedJQL === "string") {
+      return { jql: processedJQL, filterForQuery };
     }
 
-    return buildQuery({
-      ...result,
-      orderBy: result.orderBy || "updated DESC, created DESC",
-      queryType: "JQL",
+    const finalJQL = buildQuery({
+      ...processedJQL,
+      orderBy: processedJQL.orderBy || "updated DESC, created DESC",
+      queryType: QUERY_TYPE.JQL,
     });
+
+    return { jql: finalJQL, filterForQuery };
   }, [searchText, filter, projectKeys]);
 
   const jiraIssueEnabled = useMemo(() => {
-    return (isJiraProjectFetched || !!jiraProjectError) && jql.length >= 2;
+    return (isJiraProjectFetched || !!jiraProjectError) && !!jql;
   }, [isJiraProjectFetched, jiraProjectError, jql]);
 
   const {
@@ -140,7 +144,7 @@ function JiraSearchIssueContent() {
     }
   };
 
-  const sectionTitle = getSectionTitle(filter, {
+  const sectionTitle = getSectionTitle(filterForQuery, {
     fetchedCount: data.issues.length,
     totalCount: data?.totalCount || 0,
   });
@@ -173,7 +177,7 @@ function JiraSearchIssueContent() {
       return filteredJQL;
     };
 
-    let finalJQL = !searchText || !PURE_NUMBER_REGEX.test(searchText) ? jql : getFinalJQL(data.issues);
+    let finalJQL = !searchText || !isIssueNumber(searchText) ? jql : getFinalJQL(data.issues);
 
     if (currentUser?.name) {
       finalJQL = replaceQueryCurrentUser(finalJQL, currentUser.name);

@@ -1,6 +1,3 @@
-// TODO:
-export const IGNORE_FILTER = false;
-
 export const QUERY_TYPE = {
   CQL: "CQL",
   JQL: "JQL",

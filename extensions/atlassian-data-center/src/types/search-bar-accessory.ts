@@ -9,19 +9,17 @@ export type SearchBarAccessoryCommandName =
 export interface SearchBarAccessoryItem {
   value: string;
   title: string;
+  icon: DropdownItemIcon;
   /** Query string - CQL in Confluence, JQL in Jira */
   query: string;
-  icon: DropdownItemIcon;
   autoQuery?: boolean;
+  logicOperator?: "AND" | "OR" | "NOT";
+  orderBy?: string;
   transform?: (processedQuery: string, context?: { userInput: string; filter: SearchFilter }) => string;
   sectionTitle?: string | ((params: { fetchedCount: number; totalCount: number }) => string);
-  /** 逻辑运算符，用于连接用户输入和 filter 查询 */
-  logicOperator?: "AND" | "OR" | "NOT";
-  /** ORDER BY 子句 */
-  orderBy?: string;
 }
 
 export type SearchFilter = Pick<
   SearchBarAccessoryItem,
-  "value" | "query" | "transform" | "autoQuery" | "sectionTitle" | "logicOperator" | "orderBy"
+  "value" | "query" | "autoQuery" | "logicOperator" | "orderBy" | "transform" | "sectionTitle"
 >;

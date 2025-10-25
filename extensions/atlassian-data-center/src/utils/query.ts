@@ -36,7 +36,9 @@ export function processUserInputAndFilter(params: ProcessUserInputParams): Proce
     };
   }
 
-  let userClause = userInput ? buildClauseFromText(userInput) : "";
+  // Only escape quotes if user input is not a complete JQL/CQL clause
+  const escapedUserInput = userInput ? escapeQuotes(userInput) : "";
+  let userClause = escapedUserInput ? buildClauseFromText(escapedUserInput) : "";
   if (filter?.transform) {
     userClause = filter.transform(userClause);
   }
@@ -96,6 +98,33 @@ function normalizeSpaces(input: string): string {
   return input.trim().replace(/\s{2,}/g, " ");
 }
 
+function hasValidValue(input: string): boolean {
+  const parts = input.trim().split(/\s+/);
+
+  // Need at least 3 parts (field, operator, value)
+  if (parts.length < 3) return false;
+
+  // Get the value part (everything after the first two parts)
+  const valuePart = parts.slice(2).join(" ").trim();
+
+  // Check if value is just quotes (single or double)
+  if (valuePart === '"' || valuePart === '""' || valuePart === "'" || valuePart === "''") {
+    return false;
+  }
+
+  // Additional check: if the value part contains only escaped quotes, it's invalid
+  if (valuePart === '\\"' || valuePart === '\\""' || valuePart === "\\'" || valuePart === "\\''") {
+    return false;
+  }
+
+  return true;
+}
+
+function escapeQuotes(input: string): string {
+  // If input contains quotes, need to be escaped
+  return input.replace(/"/g, '\\"').replace(/'/g, "\\'");
+}
+
 export function isJQL(input: string): boolean {
   if (input.length < MIN_CLAUSE_LENGTH) return false;
 
@@ -116,7 +145,7 @@ export function isJQL(input: string): boolean {
   if (!hasOperator) return false;
 
   // Check for value presence - basic check for non-empty content
-  const hasValue = input.trim().split(/\s+/).length >= 3; // at least 3 parts
+  const hasValue = hasValidValue(input);
   return hasValue;
 }
 
@@ -138,7 +167,7 @@ export function isCQL(query: string): boolean {
   if (!hasOperator) return false;
 
   // Check for value presence - basic check for non-empty content
-  const hasValue = query.trim().split(/\s+/).length >= 3; // at least 3 parts
+  const hasValue = hasValidValue(query);
   return hasValue;
 }
 
@@ -163,8 +192,7 @@ export function validateQuery(params: ValidateQueryParams): { isValid: boolean; 
 
     return { isValid: true };
   } catch {
-    const queryTypeName = queryType === QUERY_TYPE.JQL ? "JQL" : "CQL";
-    return { isValid: false, error: `${queryTypeName} syntax error` };
+    return { isValid: false, error: `${queryType} syntax error` };
   }
 }
 
