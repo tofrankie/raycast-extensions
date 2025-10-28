@@ -18,13 +18,13 @@ export function processConfluenceSearchContentItems(
 
 function processConfluenceSearchContentItem(item: ConfluenceSearchContentResult): ProcessedConfluenceContentItem {
   const id = item.id;
-  const title = item.title;
+  const title = { value: item.title, tooltip: `Title: ${item.title}` };
   const spaceName = item.space?.name || "";
 
   const iconType = item.type as ConfluenceIconType;
   const icon = {
     value: CONFLUENCE_TYPE_ICON[iconType] ?? "icon-unknown.svg",
-    tooltip: CONFLUENCE_TYPE_LABEL[iconType] ?? "Unknown",
+    tooltip: `Content Type: ${CONFLUENCE_TYPE_LABEL[iconType] ?? "Unknown"}`,
   };
 
   const baseUrl = CONFLUENCE_BASE_URL;
@@ -56,7 +56,7 @@ function processConfluenceSearchContentItem(item: ConfluenceSearchContentResult)
   const canEdit = EDITABLE_TYPES.includes(type);
   const canFavorite = EDITABLE_TYPES.includes(type);
 
-  const subtitle = { value: spaceName, tooltip: "Space" };
+  const subtitle = { value: spaceName, tooltip: `Space: ${spaceName}` };
   const accessories = [
     ...(isFavourited
       ? [

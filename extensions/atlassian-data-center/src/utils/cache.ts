@@ -9,7 +9,7 @@ const cacheInstances = new Set<Cache>();
 
 export const avatarCache = createCache();
 
-export const jiraCustomFieldCache = createCache();
+export const jiraSelectedFieldsCache = createCache();
 
 export const jiraCurrentUserCache = createCache();
 
@@ -74,13 +74,13 @@ export async function clearCacheDirectories() {
  * Write API or command response data to debug file.
  * Only active when DEBUG_ENABLE is true.
  */
-export async function writeResponseFile(content: string, commandName: string) {
+export async function writeResponseFile(content: string, filenameWithoutExt: string) {
   if (!DEBUG_ENABLE) return;
 
   try {
     await ensureDirExists(CACHE_DIRECTORY.RESPONSE);
 
-    const filename = `${commandName}.json`;
+    const filename = `${filenameWithoutExt}.json`;
     const filePath = path.join(CACHE_DIRECTORY.RESPONSE, filename);
 
     await fs.writeFile(filePath, content, "utf8");

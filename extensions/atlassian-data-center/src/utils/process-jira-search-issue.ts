@@ -1,12 +1,23 @@
-import { JIRA_PRIORITY_ICON } from "@/constants";
-import { getIssueTypeIcon, getJiraIssueEditUrl, getJiraIssueUrl, getSelectedCustomFields } from "@/utils";
-import type { JiraIssue, JiraUser, ProcessedJiraIssueItem, ListItemAccessories, ListItemSubtitle } from "@/types";
+import { getIssueTypeIcon, getJiraIssueEditUrl, getJiraIssueUrl, getIssuePriorityIcon } from "@/utils";
+import type {
+  JiraSearchIssue,
+  JiraUser,
+  ProcessedJiraIssueItem,
+  ListItemAccessories,
+  ListItemSubtitle,
+  JiraField,
+} from "@/types";
 
-export function processJiraSearchIssue(issue: JiraIssue, names?: Record<string, string>): ProcessedJiraIssueItem {
+export function processJiraSearchIssue(
+  issue: JiraSearchIssue,
+  selectedFields: JiraField[],
+  fieldsNameMap?: Record<string, string>,
+): ProcessedJiraIssueItem {
   const { fields, key, id } = issue;
 
-  const summary = fields.summary || "No Summary";
-  const issueType = fields.issuetype?.name || "Task";
+  const summary = fields.summary;
+  const title = { value: summary, tooltip: `Summary: ${summary}` };
+  const issueType = fields.issuetype.name;
 
   const url = getJiraIssueUrl(key);
   const editUrl = getJiraIssueEditUrl(id);
@@ -17,9 +28,7 @@ export function processJiraSearchIssue(issue: JiraIssue, names?: Record<string, 
     tooltip: `Issue Type: ${issueType}`,
   };
 
-  const selectedCustomFields = getSelectedCustomFields();
-
-  const customFieldValue = selectedCustomFields.reduce(
+  const selectedFieldValue = selectedFields.reduce(
     (acc, field) => {
       const value = issue.fields[field.id];
       if (value !== undefined && value !== null) {
@@ -30,12 +39,12 @@ export function processJiraSearchIssue(issue: JiraIssue, names?: Record<string, 
     {} as Record<string, JiraUser>,
   );
 
-  const subtitle = buildSubtitle(issue, customFieldValue, names);
+  const subtitle = buildSubtitle(issue, selectedFieldValue, fieldsNameMap);
   const accessories = buildAccessories(issue);
 
   return {
     renderKey: id,
-    title: summary,
+    title,
     key,
     summary,
     icon,
@@ -47,9 +56,9 @@ export function processJiraSearchIssue(issue: JiraIssue, names?: Record<string, 
 }
 
 function buildSubtitle(
-  issue: JiraIssue,
-  customFieldValue?: Record<string, JiraUser>,
-  names?: Record<string, string>,
+  issue: JiraSearchIssue,
+  selectedFieldValue?: Record<string, JiraUser>,
+  fieldsNameMap?: Record<string, string>,
 ): ListItemSubtitle {
   const { key: issueKey, fields } = issue;
   const assignee = fields.assignee?.displayName || "Unassigned";
@@ -69,9 +78,9 @@ function buildSubtitle(
   }
 
   // TODO: Support more types of custom fields
-  if (customFieldValue) {
-    Object.entries(customFieldValue).forEach(([fieldId, value]) => {
-      const fieldName = names?.[fieldId] || fieldId;
+  if (selectedFieldValue) {
+    Object.entries(selectedFieldValue).forEach(([fieldId, value]) => {
+      const fieldName = fieldsNameMap?.[fieldId] ?? fieldId;
       tooltipParts.push(`${fieldName}: ${value.displayName}`);
     });
   }
@@ -82,10 +91,8 @@ function buildSubtitle(
   };
 }
 
-function buildAccessories(issue: JiraIssue): ListItemAccessories {
+function buildAccessories(issue: JiraSearchIssue): ListItemAccessories {
   const { fields } = issue;
-  const status = fields.status?.name || "Unknown";
-  const priority = fields.priority?.name || "Medium";
   const created = fields.created ? new Date(fields.created) : null;
   const updated = fields.updated ? new Date(fields.updated) : null;
   const dueDate = fields.duedate ? new Date(fields.duedate) : null;
@@ -96,8 +103,9 @@ function buildAccessories(issue: JiraIssue): ListItemAccessories {
   };
   const accessories: ListItemAccessories = [];
 
+  const priority = fields.priority?.name;
   if (priority) {
-    const priorityIcon = getPriorityIcon(priority);
+    const priorityIcon = getIssuePriorityIcon(priority);
 
     if (priorityIcon) {
       accessories.push({
@@ -112,6 +120,7 @@ function buildAccessories(issue: JiraIssue): ListItemAccessories {
     }
   }
 
+  const status = fields.status?.name;
   if (status) {
     accessories.push({
       tag: status,
@@ -144,29 +153,10 @@ function buildAccessories(issue: JiraIssue): ListItemAccessories {
     timeTooltipParts.push(`Logged Time: ${timeTracking.timeSpent}`);
   }
 
-  accessories.push({
+  accessories.unshift({
     date: updated ?? created,
     tooltip: timeTooltipParts.join("\n"),
   });
 
   return accessories;
-}
-
-function getPriorityIcon(priority: string): string | undefined {
-  const normalizedPriority = priority.toUpperCase();
-
-  if (isBuiltInPriority(normalizedPriority)) {
-    return JIRA_PRIORITY_ICON[normalizedPriority];
-  }
-
-  const similarPriority = Object.keys(JIRA_PRIORITY_ICON).find((key) => key.includes(normalizedPriority));
-  if (similarPriority && isBuiltInPriority(similarPriority)) {
-    return JIRA_PRIORITY_ICON[similarPriority];
-  }
-
-  return undefined;
-}
-
-function isBuiltInPriority(priority: string): priority is keyof typeof JIRA_PRIORITY_ICON {
-  return priority in JIRA_PRIORITY_ICON;
 }

@@ -4,13 +4,13 @@ import { apiRequest, handleApiResponse } from "@/utils";
 
 type RequestParams = {
   method: "GET" | "POST" | "PUT" | "DELETE";
-  endpoint: string;
+  url: string;
   params?: Record<string, unknown>;
 };
 
 const CONFIG: RequestParams = {
   method: "GET",
-  endpoint: "/rest/api/2/myself",
+  url: "/rest/api/2/issuetype",
 } as const;
 
 export function useApiTest() {
@@ -20,12 +20,12 @@ export function useApiTest() {
 }
 
 async function fetchApi() {
-  const { endpoint, method, params } = CONFIG;
+  const { url, method, params } = CONFIG;
 
-  if (!endpoint) return;
+  if (!url) return;
 
   try {
-    const data = await apiRequest({ method, endpoint, params });
+    const data = await apiRequest({ method, url, params });
     handleApiResponse({ data, fileName: "test", defaultValue: null });
   } catch (err) {
     console.error("❌ Fetch Test Error:", err);

@@ -42,22 +42,22 @@ function processConfluenceSearchUserItem(
   // TODO: Open user space homepage
   const url = `${CONFLUENCE_BASE_URL}${item.url}`;
 
-  const subtitle = { value: username, tooltip: `Username` };
+  const subtitle = { value: username, tooltip: `Username: ${username}` };
 
   const isCurrentUser = currentUser?.userKey === userKey;
 
   const accessories = [
     ...(user.status !== CONFLUENCE_USER_STATUS.CURRENT
-      ? [{ text: user.status.charAt(0).toUpperCase() + user.status.slice(1), tooltip: "User Status" }]
+      ? [{ text: user.status.charAt(0).toUpperCase() + user.status.slice(1), tooltip: `User Status: ${user.status}` }]
       : []),
     ...(isCurrentUser ? [{ text: "You", tooltip: "Current User" }] : []),
   ];
 
   return {
     renderKey: userKey,
-    title,
     userKey,
-    displayName: title,
+    title,
+    displayName: user.displayName,
     icon,
     subtitle,
     accessories,

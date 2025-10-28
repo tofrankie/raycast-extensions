@@ -1,40 +1,40 @@
 import { Icon } from "@raycast/api";
 
 import { CACHE_KEY } from "@/constants";
-import { jiraCustomFieldCache } from "@/utils";
+import { jiraSelectedFieldsCache } from "@/utils";
 import type { JiraField, ListItemAccessories, ProcessedJiraFieldItem } from "@/types";
 
-export function getSelectedCustomFields(): JiraField[] {
-  const cached = jiraCustomFieldCache.get(CACHE_KEY.JIRA_SELECTED_CUSTOM_FIELD);
+export function getSelectedFields(): JiraField[] {
+  const cached = jiraSelectedFieldsCache.get(CACHE_KEY.JIRA_SELECTED_FIELDS);
   return cached ? JSON.parse(cached) : [];
 }
 
-export function getSelectedCustomFieldIds(): string[] {
-  const fields = getSelectedCustomFields();
+export function getSelectedFieldIds(): string[] {
+  const fields = getSelectedFields();
   return (fields || []).map((field) => field.id);
 }
 
-export function setSelectedCustomFields(fields: JiraField[]): void {
-  jiraCustomFieldCache.set(CACHE_KEY.JIRA_SELECTED_CUSTOM_FIELD, JSON.stringify(fields));
+export function setSelectedFields(fields: JiraField[]): void {
+  jiraSelectedFieldsCache.set(CACHE_KEY.JIRA_SELECTED_FIELDS, JSON.stringify(fields));
 }
 
-export function addCustomField(field: JiraField): void {
-  const current = getSelectedCustomFields();
+export function addSelectedField(field: JiraField): void {
+  const current = getSelectedFields();
   if (!current.some((item) => item.id === field.id)) {
-    setSelectedCustomFields([...current, field]);
+    setSelectedFields([...current, field]);
   }
 }
 
-export function removeCustomField(fieldId: string): void {
-  const current = getSelectedCustomFields();
-  setSelectedCustomFields(current.filter((field) => field.id !== fieldId));
+export function removeSelectedField(fieldId: string): void {
+  const current = getSelectedFields();
+  setSelectedFields(current.filter((field) => field.id !== fieldId));
 }
 
 export function processJiraFieldItem(field: JiraField, isAdded: boolean): ProcessedJiraFieldItem {
   const schemaType = field.schema?.type || "Unknown";
   const subtitle = {
     value: field.id,
-    tooltip: "Field ID",
+    tooltip: `Field ID: ${field.id}`,
   };
 
   const accessories: ListItemAccessories = [
@@ -48,11 +48,11 @@ export function processJiraFieldItem(field: JiraField, isAdded: boolean): Proces
       : []),
     {
       text: schemaType,
-      tooltip: "Field Schema Type",
+      tooltip: `Field Schema Type: ${schemaType}`,
     },
     {
       text: field.custom ? "Custom" : "System",
-      tooltip: "Field Type",
+      tooltip: `Field Type: ${field.custom ? "Custom" : "System"}`,
     },
   ];
 

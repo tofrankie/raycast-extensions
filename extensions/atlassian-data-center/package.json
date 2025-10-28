@@ -40,10 +40,11 @@
     "test:run": "vitest run"
   },
   "dependencies": {
-    "@raycast/api": "^1.103.2",
-    "@raycast/utils": "^1.17.0",
+    "@raycast/api": "^1.103.4",
+    "@raycast/utils": "^1.19.1",
     "@tanstack/react-query": "^5.90.2",
-    "dayjs": "^1.11.18"
+    "dayjs": "^1.11.18",
+    "ky": "^1.13.0"
   },
   "devDependencies": {
     "@raycast/eslint-config": "^2.0.4",
@@ -120,7 +121,7 @@
       "name": "confluence-search-content",
       "title": "Search Content",
       "subtitle": "Confluence Data Center",
-      "description": "Search Confluence content with advanced filters and CQL syntax support",
+      "description": "Search Confluence pages, blog posts, comments, and attachments",
       "mode": "view",
       "icon": "logo-confluence.png"
     },
@@ -128,7 +129,7 @@
       "name": "confluence-search-user",
       "title": "Search User",
       "subtitle": "Confluence Data Center",
-      "description": "Search Confluence users by name",
+      "description": "Search Confluence users",
       "mode": "view",
       "icon": "logo-confluence.png"
     },
@@ -136,7 +137,7 @@
       "name": "confluence-search-space",
       "title": "Search Space",
       "subtitle": "Confluence Data Center",
-      "description": "Search Confluence spaces with type filters",
+      "description": "Search Confluence spaces",
       "mode": "view",
       "icon": "logo-confluence.png"
     },
@@ -144,23 +145,23 @@
       "name": "jira-search-issue",
       "title": "Search Issue",
       "subtitle": "Jira Data Center",
-      "description": "Search Jira issues with advanced filters and JQL syntax support",
+      "description": "Search Jira issues",
       "mode": "view",
       "icon": "logo-jira.png"
     },
     {
-      "name": "jira-manage-field",
-      "title": "Manage Field",
+      "name": "jira-board-view",
+      "title": "Board View",
       "subtitle": "Jira Data Center",
-      "description": "Manage custom fields for Jira issue search",
+      "description": "View active sprint issues on Jira board",
       "mode": "view",
       "icon": "logo-jira.png"
     },
     {
-      "name": "jira-worklog",
-      "title": "Worklog",
+      "name": "jira-worklog-view",
+      "title": "Worklog View",
       "subtitle": "Jira Data Center",
-      "description": "View your worklog entries with time tracking and progress",
+      "description": "View your Jira worklog",
       "mode": "view",
       "icon": "logo-jira.png",
       "preferences": [
@@ -174,6 +175,14 @@
           "placeholder": "8"
         }
       ]
+    },
+    {
+      "name": "jira-manage-field",
+      "title": "Manage Field",
+      "subtitle": "Jira Data Center",
+      "description": "Manage custom fields for Jira issue search",
+      "mode": "view",
+      "icon": "logo-jira.png"
     }
   ]
 }

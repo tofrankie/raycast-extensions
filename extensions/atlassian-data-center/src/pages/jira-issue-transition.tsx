@@ -27,12 +27,13 @@ function JiraIssueTransitionContent({ issueKey, onUpdate }: JiraIssueTransitionP
   const { pop } = useNavigation();
   const [selectedTransitionId, setSelectedTransitionId] = useState<string>("");
   const { currentUser } = useJiraCurrentUser();
-  const { data: issue, isLoading: issueLoading, error: issueError } = useJiraIssueQuery(issueKey);
+  const { data: issue, isLoading: isIssueLoading, error: issueError } = useJiraIssueQuery(issueKey);
 
   const {
     data: transitions,
-    isLoading: transitionsLoading,
+    isLoading: isTransitionsLoading,
     error: transitionsError,
+    isSuccess: isTransitionsSuccess,
   } = useJiraIssueTransitionsQuery(issueKey);
 
   const transitionMutation = useJiraIssueTransitionMutation({
@@ -88,7 +89,7 @@ function JiraIssueTransitionContent({ issueKey, onUpdate }: JiraIssueTransitionP
     }
   }, [transitionsError]);
 
-  const isLoading = issueLoading || transitionsLoading || transitionMutation.isPending;
+  const isLoading = isIssueLoading || isTransitionsLoading || transitionMutation.isPending;
 
   const availableStatusList = useMemo(() => {
     if (!issue || !transitions) return [];
@@ -113,14 +114,18 @@ function JiraIssueTransitionContent({ issueKey, onUpdate }: JiraIssueTransitionP
     };
   }, [issue, currentUser]);
 
+  const hasPermission = useMemo(() => {
+    return isTransitionsSuccess && !!transitions?.transitions.length;
+  }, [isTransitionsSuccess, transitions?.transitions.length]);
+
   return (
     <Form
       isLoading={isLoading}
       navigationTitle="Transition Status"
       actions={
         <ActionPanel>
-          <Action.SubmitForm title="Submit" icon={Icon.Checkmark} onSubmit={handleSubmit} />
-          <Action title="Cancel" icon={Icon.Xmark} onAction={handleCancel} />
+          {hasPermission && <Action.SubmitForm title="Submit" icon={Icon.Checkmark} onSubmit={handleSubmit} />}
+          <Action title="Go Back" icon={Icon.ArrowLeft} onAction={handleCancel} />
         </ActionPanel>
       }
     >
@@ -128,17 +133,21 @@ function JiraIssueTransitionContent({ issueKey, onUpdate }: JiraIssueTransitionP
       <Form.Description title="Summary" text={displayValues.summary} />
       <Form.Description title="Assignee" text={displayValues.assignee} />
       <Form.Description title="Status" text={displayValues.status} />
-      <Form.Dropdown
-        id="transitionId"
-        title="Transition Action"
-        placeholder="Select transition action..."
-        value={selectedTransitionId}
-        onChange={setSelectedTransitionId}
-      >
-        {availableStatusList.map((item) => (
-          <Form.Dropdown.Item key={item.id} value={item.id} title={item.displayName} />
-        ))}
-      </Form.Dropdown>
+      {isTransitionsSuccess && !hasPermission ? (
+        <Form.Description title="Transition Action" text="⚠️ You don't have permission to transition this issue" />
+      ) : (
+        <Form.Dropdown
+          id="transitionId"
+          title="Transition Action"
+          placeholder="Select transition action..."
+          value={selectedTransitionId}
+          onChange={setSelectedTransitionId}
+        >
+          {availableStatusList.map((item) => (
+            <Form.Dropdown.Item key={item.id} value={item.id} title={item.displayName} />
+          ))}
+        </Form.Dropdown>
+      )}
     </Form>
   );
 }

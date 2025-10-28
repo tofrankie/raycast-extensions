@@ -1,28 +1,29 @@
 import { useInfiniteQuery, useQuery } from "@tanstack/react-query";
 import type { UseQueryOptions, UseInfiniteQueryOptions } from "@tanstack/react-query";
 
-import { COMMAND_NAME, PAGINATION_SIZE } from "@/constants";
+import { COMMAND_NAME, PAGINATION_SIZE, JIRA_SEARCH_ISSUE_FIELDS } from "@/constants";
 import {
   searchJiraIssue,
   processJiraSearchIssue,
-  getSelectedCustomFieldIds,
   processJiraFieldItem,
   getJiraField,
   getJiraProject,
   getJiraCurrentUser,
   getJiraWorklog,
   processJiraWorklog,
+  getSelectedFields,
+  getSelectedFieldIds,
 } from "@/utils";
 import type {
   JiraSearchIssueResponse,
   JiraField,
   JiraProject,
   JiraCurrentUser,
+  JiraWorklog,
   ProcessedJiraIssueItem,
   ProcessedJiraFieldItem,
   WorklogGroup,
 } from "@/types";
-import type { JiraWorklog } from "@/types/jira";
 
 export function useJiraSearchIssueInfiniteQuery<
   TData = { issues: ProcessedJiraIssueItem[]; hasMore: boolean; totalCount: number },
@@ -30,26 +31,14 @@ export function useJiraSearchIssueInfiniteQuery<
   return useInfiniteQuery<JiraSearchIssueResponse, Error, TData>({
     queryKey: [COMMAND_NAME.JIRA_SEARCH_ISSUE, { jql, pageSize: PAGINATION_SIZE }],
     queryFn: async ({ pageParam = 0 }) => {
-      const customFieldIds = getSelectedCustomFieldIds();
+      const selectedFieldIds = getSelectedFieldIds();
 
       const params = {
         jql,
         startAt: pageParam as number,
         maxResults: PAGINATION_SIZE,
         validateQuery: false,
-        fields: [
-          "summary",
-          "status",
-          "priority",
-          "issuetype",
-          "assignee",
-          "reporter",
-          "created",
-          "updated",
-          "duedate",
-          "timetracking",
-          ...customFieldIds,
-        ],
+        fields: [...JIRA_SEARCH_ISSUE_FIELDS, ...selectedFieldIds],
         expand: ["names"],
       };
 
@@ -58,9 +47,12 @@ export function useJiraSearchIssueInfiniteQuery<
     },
     select: (data) => {
       const allIssue = data.pages.flatMap((page) => page.issues);
-      const names = data.pages[0]?.names;
+      const fieldsNameMap = data.pages[0]?.names;
       const totalCount = data.pages[0]?.total;
-      const processedIssues: ProcessedJiraIssueItem[] = allIssue.map((issue) => processJiraSearchIssue(issue, names));
+      const selectedFields = getSelectedFields();
+      const processedIssues: ProcessedJiraIssueItem[] = allIssue.map((issue) =>
+        processJiraSearchIssue(issue, selectedFields, fieldsNameMap),
+      );
 
       const hasMore =
         data.pages.length > 0
@@ -133,8 +125,7 @@ export function useJiraWorklogQuery<TData = WorklogGroup[]>(
     queryKey: [COMMAND_NAME.JIRA_WORKLOG, { userKey, from, to }],
     queryFn: async () => {
       if (!userKey) return [];
-      const data = await getJiraWorklog({ from, to, worker: [userKey] });
-      return data;
+      return await getJiraWorklog({ from, to, worker: [userKey] });
     },
     enabled: !!userKey,
     select: (data) => processJiraWorklog(data) as TData,

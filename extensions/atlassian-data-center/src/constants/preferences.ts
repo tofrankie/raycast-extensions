@@ -1,7 +1,7 @@
 import { environment, getPreferenceValues } from "@raycast/api";
 
 const preferences = getPreferenceValues<Preferences>();
-const worklogPreferences = getPreferenceValues<Preferences.JiraWorklog>();
+const worklogViewPreferences = getPreferenceValues<Preferences.JiraWorklogView>();
 const commandName = environment.commandName;
 
 export const CONFLUENCE_BASE_URL = preferences.confluenceBaseUrl;
@@ -19,7 +19,7 @@ export const CURRENT_PAT = commandName?.startsWith("jira-") ? JIRA_PAT : CONFLUE
 export const CURRENT_BASE_URL = commandName?.startsWith("jira-") ? JIRA_BASE_URL : CONFLUENCE_BASE_URL;
 
 const DEFAULT_DAILY_WORK_HOURS = 8;
-export const DAILY_WORK_HOURS = formatDailyWorkHours(worklogPreferences.jiraDailyWorkHours);
+export const DAILY_WORK_HOURS = formatDailyWorkHours(worklogViewPreferences.jiraDailyWorkHours);
 export const DAILY_WORK_SECONDS = DAILY_WORK_HOURS * 3600;
 
 function formatPaginationSize(paginationSize: string) {

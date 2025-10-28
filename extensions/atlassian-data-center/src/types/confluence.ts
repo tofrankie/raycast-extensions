@@ -11,12 +11,6 @@ export type ConfluenceIconType = ConfluenceEntityType | ConfluenceContentType;
 
 export type ConfluenceLabelType = ConfluenceEntityType | ConfluenceContentType;
 
-export interface ConfluencePreferences {
-  confluenceBaseUrl: string;
-  confluencePersonalAccessToken: string;
-  paginationSize: number;
-}
-
 export interface ConfluenceSearchContentResponse {
   results: ConfluenceSearchContentResult[];
   start: number;

@@ -21,15 +21,15 @@ const timeRanges: WorklogFilter[] = [
   { value: JIRA_WORKLOG_RANGE.MONTHLY, title: "This Month", icon: Icon.Calendar },
 ];
 
-export default function JiraWorklogProvider() {
+export default function JiraWorklogViewProvider() {
   return (
     <QueryProvider>
-      <JiraWorklogContent />
+      <JiraWorklogView />
     </QueryProvider>
   );
 }
 
-function JiraWorklogContent() {
+function JiraWorklogView() {
   const [selectedRangeType, setSelectedRangeType] = useState<string>("");
 
   const { currentUser, error: currentUserError } = useJiraCurrentUser();
@@ -82,7 +82,7 @@ function JiraWorklogContent() {
   return (
     <List
       throttle
-      searchBarPlaceholder="Search Worklogs..."
+      searchBarPlaceholder="Filter worklogs by summary, key, date..."
       isLoading={isLoading}
       searchBarAccessory={
         <List.Dropdown tooltip="Select Time Range" value={selectedRangeType} onChange={setSelectedRangeType} storeValue>
@@ -97,7 +97,7 @@ function JiraWorklogContent() {
           <List.EmptyView
             icon={Icon.MagnifyingGlass}
             title="No Results"
-            description="No worklog entries found for the selected time range"
+            description="No worklogs found for selected time range"
             actions={
               <ActionPanel>
                 <Action title="Refresh" icon={Icon.ArrowClockwise} onAction={handleRefresh} />

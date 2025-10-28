@@ -1,5 +1,6 @@
 import path from "node:path";
 import fs from "node:fs/promises";
+import ky from "ky";
 
 import { getAuthHeaders, avatarCache, ensureDirExists } from "@/utils";
 import { AVATAR_DIR } from "@/constants";
@@ -19,14 +20,9 @@ export async function downloadAvatar(options: DownloadAvatarOptions) {
     const outputDir = AVATAR_DIR[type];
     await ensureDirExists(outputDir);
 
-    const response = await fetch(url, {
-      method: "GET",
+    const response = await ky.get(url, {
       headers: getAuthHeaders(token),
     });
-
-    if (!response.ok) {
-      throw new Error(`HTTP error: ${response.status} ${response.statusText}`);
-    }
 
     const arrayBuffer = await response.arrayBuffer();
     const buffer = Buffer.from(arrayBuffer);

@@ -1,16 +1,20 @@
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import type { UseQueryOptions, UseMutationOptions } from "@tanstack/react-query";
 
-import { getJiraIssue, getJiraIssueTransitions, transitionJiraIssue } from "@/utils";
-import type { JiraIssue, JiraTransitionResponse } from "@/types";
+import { JIRA_API } from "@/constants";
+import { getJiraIssue, getJiraIssueTransitions, transitionJiraIssue, transformURL } from "@/utils";
+import type { JiraSearchIssue, JiraTransitionResponse } from "@/types";
 
-export function useJiraIssueQuery<TData = JiraIssue>(
+export function useJiraIssueQuery<TData = JiraSearchIssue>(
   issueKey: string,
-  queryOptions?: Partial<UseQueryOptions<JiraIssue, Error, TData>>,
+  queryOptions?: Partial<UseQueryOptions<JiraSearchIssue, Error, TData>>,
 ) {
-  return useQuery<JiraIssue, Error, TData>({
+  return useQuery<JiraSearchIssue, Error, TData>({
     queryKey: ["jira-issue", issueKey],
-    queryFn: () => getJiraIssue(issueKey),
+    queryFn: () => {
+      const url = transformURL(JIRA_API.ISSUE, { issueIdOrKey: issueKey });
+      return getJiraIssue(url);
+    },
     enabled: !!issueKey,
     staleTime: 0,
     gcTime: 20 * 1000,
@@ -24,7 +28,10 @@ export function useJiraIssueTransitionsQuery<TData = JiraTransitionResponse>(
 ) {
   return useQuery<JiraTransitionResponse, Error, TData>({
     queryKey: ["jira-issue-transitions", issueKey],
-    queryFn: () => getJiraIssueTransitions(issueKey),
+    queryFn: () => {
+      const url = transformURL(JIRA_API.ISSUE_TRANSITIONS, { issueIdOrKey: issueKey });
+      return getJiraIssueTransitions(url);
+    },
     enabled: !!issueKey,
     staleTime: 0,
     gcTime: 20 * 1000,
@@ -32,15 +39,16 @@ export function useJiraIssueTransitionsQuery<TData = JiraTransitionResponse>(
   });
 }
 
-export function useJiraIssueTransitionMutation<TData = void>(
-  mutationOptions?: Partial<UseMutationOptions<TData, Error, { issueKey: string; transitionId: string }>>,
+export function useJiraIssueTransitionMutation(
+  mutationOptions?: Partial<UseMutationOptions<void, Error, { issueKey: string; transitionId: string }>>,
 ) {
   const queryClient = useQueryClient();
 
-  return useMutation<TData, Error, { issueKey: string; transitionId: string }>({
+  return useMutation<void, Error, { issueKey: string; transitionId: string }>({
     mutationFn: async ({ issueKey, transitionId }) => {
-      await transitionJiraIssue(issueKey, transitionId);
-      return undefined as TData;
+      const url = transformURL(JIRA_API.ISSUE_TRANSITIONS, { issueIdOrKey: issueKey });
+      const params = { transition: { id: transitionId } };
+      await transitionJiraIssue(url, params);
     },
     onSuccess: (_, { issueKey }) => {
       queryClient.invalidateQueries({ queryKey: ["jira-issue", issueKey] });

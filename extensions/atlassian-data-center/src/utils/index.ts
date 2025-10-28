@@ -1,3 +1,4 @@
+export * from "./common";
 export * from "./raycast";
 export * from "./cache";
 export * from "./file";
@@ -12,6 +13,7 @@ export * from "./process-confluence-search-user";
 export * from "./process-confluence-search-space";
 export * from "./process-jira-search-issue";
 export * from "./process-jira-manage-field";
-export * from "./process-jira-worklog";
+export * from "./process-jira-worklog-view";
+export * from "./process-jira-board-view";
 export * from "./section-title";
 export * from "./query";

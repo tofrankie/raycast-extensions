@@ -14,8 +14,9 @@ import {
   buildQuery,
   copyToClipboardWithToast,
   replaceQueryCurrentUser,
+  isIssueKey,
+  isIssueNumber,
 } from "@/utils";
-import { isIssueKey, isIssueNumber } from "@/utils/jira";
 import type { ProcessedJiraIssueItem, SearchFilter } from "@/types";
 
 const EMPTY_INFINITE_DATA = { issues: [], hasMore: false, totalCount: 0 };
@@ -24,12 +25,12 @@ const DEFAULT_FILTER = JIRA_SEARCH_ISSUE_FILTERS.find((item) => item.value === "
 export default function JiraSearchIssueProvider() {
   return (
     <QueryProvider>
-      <JiraSearchIssueContent />
+      <JiraSearchIssue />
     </QueryProvider>
   );
 }
 
-function JiraSearchIssueContent() {
+function JiraSearchIssue() {
   const [searchText, setSearchText] = useState("");
   const [filter, setFilter] = useState<SearchFilter | null>(null);
 
@@ -193,7 +194,7 @@ function JiraSearchIssueContent() {
       throttle
       isLoading={isLoading}
       onSearchTextChange={handleSearchTextChange}
-      searchBarPlaceholder="Search Issues..."
+      searchBarPlaceholder="Search issues by summary, key..."
       searchBarAccessory={
         <SearchBarAccessory
           commandName={COMMAND_NAME.JIRA_SEARCH_ISSUE}
@@ -224,7 +225,7 @@ function JiraSearchIssueContent() {
             {data.issues.map((item) => (
               <List.Item
                 key={item.renderKey}
-                title={item.summary}
+                title={item.title}
                 subtitle={item.subtitle}
                 icon={item.icon}
                 accessories={item.accessories}
@@ -240,7 +241,7 @@ function JiraSearchIssueContent() {
                     <Action.Push
                       title="Transition Status"
                       target={<JiraIssueTransition issueKey={item.key} onUpdate={handleRefresh} />}
-                      icon={Icon.ArrowRight}
+                      icon={Icon.Switch}
                       shortcut={{ modifiers: ["cmd"], key: "t" }}
                     />
                     <Action.CopyToClipboard

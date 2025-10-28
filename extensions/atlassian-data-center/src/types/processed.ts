@@ -1,8 +1,8 @@
-import type { ListItemIcon, ListItemSubtitle, ListItemAccessories } from "@/types";
+import type { ListItemIcon, ListItemSubtitle, ListItemAccessories, ListItemTitle } from "@/types";
 
 export interface BaseProcessedItem {
   renderKey: string;
-  title: string;
+  title: ListItemTitle;
 }
 
 export interface ProcessedConfluenceContentItem extends BaseProcessedItem {
@@ -22,6 +22,9 @@ export interface ProcessedConfluenceContentItem extends BaseProcessedItem {
 }
 
 export interface ProcessedConfluenceUserItem extends BaseProcessedItem {
+  /**
+   * Anonymous user may not have userKey, use username as fallback
+   */
   userKey: string;
   displayName: string;
   icon: ListItemIcon;
@@ -64,6 +67,17 @@ export interface ProcessedJiraIssueItem extends BaseProcessedItem {
   accessories: ListItemAccessories;
   url: string;
   editUrl: string;
+}
+
+export interface ProcessedJiraBoardIssueItem extends BaseProcessedItem {
+  key: string;
+  summary: string;
+  icon: ListItemIcon;
+  subtitle: ListItemSubtitle;
+  accessories: ListItemAccessories;
+  url: string;
+  editUrl: string;
+  keywords: string[];
 }
 
 export interface ProcessedWorklogItem extends BaseProcessedItem {

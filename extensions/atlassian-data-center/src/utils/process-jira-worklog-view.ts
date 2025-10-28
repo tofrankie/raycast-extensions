@@ -53,7 +53,7 @@ function processWorklogItem(worklog: JiraWorklog): ProcessedWorklogItem {
   const keywords = [
     issue.key, // issue key
     ...issue.key.split("-"), // project key and issue number
-    startedDayjs.format("DD"), // day of month
+    startedDayjs.format("D"), // day of month
     startedDayjs.format("ddd"), // day of week
   ];
 

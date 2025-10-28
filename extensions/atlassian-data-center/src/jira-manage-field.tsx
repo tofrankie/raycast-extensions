@@ -5,7 +5,7 @@ import { showFailureToast } from "@raycast/utils";
 import QueryProvider from "@/query-provider";
 import { DebugActions } from "@/components";
 import { useJiraFieldQuery } from "@/hooks";
-import { getSelectedCustomFields, addCustomField, removeCustomField, clearAllCacheWithToast } from "@/utils";
+import { getSelectedFields, addSelectedField, removeSelectedField, clearAllCacheWithToast } from "@/utils";
 import type { JiraField, ProcessedJiraFieldItem } from "@/types";
 
 const EMPTY_FIELDS: ProcessedJiraFieldItem[] = [];
@@ -25,7 +25,7 @@ function JiraManageFieldContent() {
   const { data = EMPTY_FIELDS, isLoading, isSuccess, error, refetch } = useJiraFieldQuery();
 
   useEffect(() => {
-    setAddedFields(getSelectedCustomFields());
+    setAddedFields(getSelectedFields());
   }, []);
 
   const { addedFieldsFiltered, systemFields, customFields } = useMemo(() => {
@@ -33,7 +33,7 @@ function JiraManageFieldContent() {
     const allFields = data ?? [];
     const searchRegex = new RegExp(trimmedText.replace(/[.*+?^${}()|[\]\\]/g, "\\$&"), "i");
     const filteredFields = allFields.filter((item) => {
-      if (searchRegex.test(item.title)) {
+      if (searchRegex.test(item.name)) {
         return true;
       }
       if (item.keywords && item.keywords.some((keyword) => searchRegex.test(keyword))) {
@@ -56,7 +56,7 @@ function JiraManageFieldContent() {
     const isAdded = addedFields.some((item) => item.id === field.id);
 
     if (isAdded) {
-      removeCustomField(field.id);
+      removeSelectedField(field.id);
       setAddedFields(addedFields.filter((item) => item.id !== field.id));
     } else {
       const jiraField: JiraField = {
@@ -69,7 +69,7 @@ function JiraManageFieldContent() {
         searchable: true,
         clauseNames: [field.id],
       };
-      addCustomField(jiraField);
+      addSelectedField(jiraField);
       setAddedFields([...addedFields, jiraField]);
     }
   };
@@ -108,7 +108,12 @@ function JiraManageFieldContent() {
   };
 
   return (
-    <List throttle isLoading={isLoading} onSearchTextChange={setSearchText} searchBarPlaceholder="Search Fields...">
+    <List
+      throttle
+      isLoading={isLoading}
+      onSearchTextChange={setSearchText}
+      searchBarPlaceholder="Filter fields by name, id, type..."
+    >
       {noFieldsAvailable || noFilteredResults ? (
         <List.EmptyView
           icon={Icon.MagnifyingGlass}

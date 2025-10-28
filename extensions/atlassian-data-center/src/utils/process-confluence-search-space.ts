@@ -41,7 +41,7 @@ function processConfluenceSearchSpaceItem(result: ConfluenceSearchResult): Proce
   const description = space.description?.plain?.value || "";
   const subtitle = {
     value: description || spaceKey,
-    tooltip: description ? `Space Description` : `Space Key`,
+    tooltip: description ? `Space Description: ${description}` : `Space Key: ${spaceKey}`,
   };
   const spaceTypeLabel = CONFLUENCE_SPACE_TYPE_LABEL[spaceType as ConfluenceSpaceType] ?? spaceType;
   const accessories = [
@@ -55,7 +55,7 @@ function processConfluenceSearchSpaceItem(result: ConfluenceSearchResult): Proce
       : []),
     {
       text: spaceTypeLabel,
-      tooltip: `Space Type`,
+      tooltip: `Space Type: ${spaceTypeLabel}`,
     },
   ];
 
