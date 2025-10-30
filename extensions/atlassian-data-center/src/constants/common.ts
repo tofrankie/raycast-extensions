@@ -15,6 +15,6 @@ export const COMMAND_NAME = {
   CONFLUENCE_SEARCH_SPACE: "confluence-search-space",
   JIRA_SEARCH_ISSUE: "jira-search-issue",
   JIRA_MANAGE_FIELD: "jira-manage-field",
-  JIRA_WORKLOG: "jira-worklog",
-  JIRA_BOARD: "jira-board",
+  JIRA_WORKLOG_VIEW: "jira-worklog-view",
+  JIRA_BOARD_VIEW: "jira-board-view",
 } as const;

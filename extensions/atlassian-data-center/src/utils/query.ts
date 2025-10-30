@@ -131,7 +131,7 @@ export function isJQL(input: string): boolean {
   // Check for complete clause structure: `<field> <operator> <value>`
   // Note: This only performs basic structural validation, as different fields support specific operators in practice
   // For example: summary field supports ~, = text operators, but not >, < numeric comparison operators
-  // Additionally, value parts have function usage restrictions, e.g., currentUser() only applies to specific fields
+  // Additionally, value parts have function usage restrictions, e.g. currentUser() only applies to specific fields
   // To avoid over-complexity, strict field-operator-value combination validation is not implemented
 
   const lowerInput = input.toLowerCase();
@@ -155,7 +155,7 @@ export function isCQL(query: string): boolean {
   // Check for complete clause structure: `<field> <operator> <value>`
   // Note: This only performs basic structural validation, as different fields support specific operators in practice
   // For example: text field supports ~, = text operators, but not >, < numeric comparison operators
-  // Additionally, value parts have function usage restrictions, e.g., currentUser() only applies to specific fields
+  // Additionally, value parts have function usage restrictions, e.g. currentUser() only applies to specific fields
   // To avoid over-complexity, strict field-operator-value combination validation is not implemented
 
   // Check for field presence

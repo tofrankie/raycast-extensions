@@ -5,6 +5,7 @@ export * from "./confluence";
 export * from "./jira-common";
 export * from "./jira-board-view";
 export * from "./jira-search-issue";
+export * from "./jira-worklog";
 export * from "./processed";
 export * from "./raycast";
 export * from "./search-bar-accessory";

@@ -2,7 +2,7 @@ import { getIssueTypeIcon, getJiraIssueEditUrl, getJiraIssueUrl, getIssuePriorit
 import type {
   JiraSearchIssue,
   JiraUser,
-  ProcessedJiraIssueItem,
+  ProcessedJiraIssue,
   ListItemAccessories,
   ListItemSubtitle,
   JiraField,
@@ -12,7 +12,7 @@ export function processJiraSearchIssue(
   issue: JiraSearchIssue,
   selectedFields: JiraField[],
   fieldsNameMap?: Record<string, string>,
-): ProcessedJiraIssueItem {
+): ProcessedJiraIssue {
   const { fields, key, id } = issue;
 
   const summary = fields.summary;

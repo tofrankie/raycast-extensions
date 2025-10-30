@@ -2,23 +2,22 @@ import { useState, useEffect, useMemo } from "react";
 import { List, ActionPanel, Action, Icon, showToast, Toast } from "@raycast/api";
 import { showFailureToast } from "@raycast/utils";
 
-import QueryProvider from "@/query-provider";
-import { DebugActions } from "@/components";
+import { QueryProvider, DebugActions } from "@/components";
 import { AVATAR_TYPE, PAGINATION_SIZE, QUERY_TYPE } from "@/constants";
 import { useConfluenceSearchUserInfiniteQuery, useAvatar, useConfluenceCurrentUser } from "@/hooks";
-import { avatarExtractors, buildQuery, clearAllCacheWithToast, processUserInputAndFilter } from "@/utils";
+import { avatarExtractors, buildQuery, processUserInputAndFilter } from "@/utils";
 
 const EMPTY_INFINITE_DATA = { items: [], hasMore: false, totalCount: 0 };
 
-export default function ConfluenceSearchUserProvider() {
+export default function ConfluenceSearchUsersProvider() {
   return (
     <QueryProvider>
-      <ConfluenceSearchUser />
+      <ConfluenceSearchUsers />
     </QueryProvider>
   );
 }
 
-function ConfluenceSearchUser() {
+function ConfluenceSearchUsers() {
   const [searchText, setSearchText] = useState("");
   useConfluenceCurrentUser();
 
@@ -133,7 +132,6 @@ function ConfluenceSearchUser() {
                       onAction={handleRefresh}
                     />
                     <DebugActions />
-                    <Action title="Clear Cache" icon={Icon.Trash} onAction={clearAllCacheWithToast} />
                   </ActionPanel>
                 }
               />

@@ -317,7 +317,7 @@ function handleUserInput(userInput: string, filter?: SearchFilter) {
 #### 4.4.2 Confluence 命令示例
 
 ```typescript
-// 在 confluence-search-content.tsx 中
+// 在 confluence-search-contents.tsx 中
 function handleUserInput(userInput: string, filter?: SearchFilter) {
   const result = processUserInputAndFilter({
     userInput,

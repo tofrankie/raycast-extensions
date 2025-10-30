@@ -1,13 +1,12 @@
 import { useState, useMemo, useEffect } from "react";
-import { List, ActionPanel, Action, Icon, showToast, Toast } from "@raycast/api";
+import { List, ActionPanel, Action, Icon, showToast, Toast, useNavigation } from "@raycast/api";
 import { showFailureToast, useCachedState } from "@raycast/utils";
 
-import QueryProvider from "@/query-provider";
-import { DebugActions } from "@/components";
-import { JiraIssueTransition } from "@/pages";
+import { QueryProvider, DebugActions } from "@/components";
+import { JiraIssueTransitionForm } from "@/pages";
 import { CACHE_KEY } from "@/constants";
 import { useJiraBoards, useJiraBoardActiveSprint, useJiraBoardConfiguration, useJiraBoardSprintIssues } from "@/hooks";
-import { clearAllCacheWithToast, processAndGroupIssues, copyToClipboardWithToast } from "@/utils";
+import { processAndGroupIssues, copyToClipboardWithToast } from "@/utils";
 
 export default function JiraBoardViewProvider() {
   return (
@@ -22,6 +21,9 @@ function JiraBoardView() {
   const [cachedSprintId, setCachedSprintId] = useCachedState(CACHE_KEY.JIRA_SELECTED_BOARD_SPRINT_ID, -1);
 
   const [selectedBoardId, setSelectedBoardId] = useState("");
+  const [supportedSprintOnBoard, setSupportedSprintOnBoard] = useState(true);
+  const [emptyDescription, setEmptyDescription] = useState("");
+  const { pop } = useNavigation();
 
   const { data: boards, isLoading: boardsLoading, error: boardsError, isSuccess: boardsSuccess } = useJiraBoards();
 
@@ -65,19 +67,16 @@ function JiraBoardView() {
   }, [boardsSuccess, boards, cachedBoardId]);
 
   useEffect(() => {
+    if (sprintSuccess && !activeSprint) {
+      setEmptyDescription("This board doesn't have an active sprint");
+    }
+  }, [activeSprint, sprintSuccess]);
+
+  useEffect(() => {
     if (sprintSuccess && activeSprint && activeSprint.id !== cachedSprintId) {
       setCachedSprintId(activeSprint.id);
     }
   }, [sprintSuccess, activeSprint, cachedSprintId]);
-
-  const handleRefresh = async () => {
-    try {
-      await refetchIssues();
-      showToast(Toast.Style.Success, "Refreshed");
-    } catch {
-      // Error handling is done by useEffect
-    }
-  };
 
   const copySprintInfo = async () => {
     if (!activeSprint) return;
@@ -86,8 +85,6 @@ function JiraBoardView() {
     await copyToClipboardWithToast(sprintInfo);
   };
 
-  const isLoading = boardsLoading || sprintLoading || isBoardConfigurationLoading || issuesLoading;
-
   useEffect(() => {
     if (boardsError) {
       showFailureToast(boardsError, { title: "Failed to Load Boards" });
@@ -95,6 +92,12 @@ function JiraBoardView() {
   }, [boardsError]);
 
   useEffect(() => {
+    if (sprintError?.message.includes("The board doesn't support sprints.")) {
+      setSupportedSprintOnBoard(false);
+      setEmptyDescription("This board doesn't support sprints");
+      return;
+    }
+
     if (sprintError) {
       showFailureToast(sprintError, { title: "Failed to Load Sprint" });
     }
@@ -116,6 +119,17 @@ function JiraBoardView() {
     if (!boardsSuccess) return;
     setCachedBoardId(newValue ? parseInt(newValue) : -1);
   };
+
+  const handleRefresh = async () => {
+    try {
+      await refetchIssues();
+      showToast(Toast.Style.Success, "Refreshed");
+    } catch {
+      // Error handling is done by useEffect
+    }
+  };
+
+  const isLoading = boardsLoading || sprintLoading || isBoardConfigurationLoading || issuesLoading;
 
   if (!cachedBoardId && boards?.length) {
     return (
@@ -139,33 +153,6 @@ function JiraBoardView() {
     );
   }
 
-  if (!cachedSprintId) {
-    return (
-      <List
-        isLoading={isLoading}
-        searchBarAccessory={
-          <List.Dropdown tooltip="Select Board" value={selectedBoardId} onChange={onBoardChange} storeValue>
-            {boards?.map((board) => (
-              <List.Dropdown.Item key={board.id} title={board.name} value={board.id.toString()} />
-            ))}
-          </List.Dropdown>
-        }
-      >
-        <List.EmptyView
-          icon={Icon.Clock}
-          title="No Active Sprint"
-          description="This board doesn't have an active sprint"
-          actions={
-            <ActionPanel>
-              <Action title="Refresh" icon={Icon.ArrowClockwise} onAction={handleRefresh} />
-              <DebugActions />
-            </ActionPanel>
-          }
-        />
-      </List>
-    );
-  }
-
   return (
     <List
       throttle
@@ -179,14 +166,15 @@ function JiraBoardView() {
         </List.Dropdown>
       }
     >
-      {Object.values(groupedIssues).flat().length === 0 ? (
+      {Object.values(groupedIssues).flat().length === 0 || !supportedSprintOnBoard ? (
         <List.EmptyView
           icon={Icon.MagnifyingGlass}
-          title="No Issues"
-          description="This sprint has no issues"
+          title="No Results"
+          description={emptyDescription}
           actions={
             <ActionPanel>
               <Action title="Refresh" icon={Icon.ArrowClockwise} onAction={handleRefresh} />
+              <Action title="Go Back" icon={Icon.ArrowLeft} onAction={() => pop()} />
               <DebugActions />
             </ActionPanel>
           }
@@ -214,7 +202,7 @@ function JiraBoardView() {
                       />
                       <Action.Push
                         title="Transition Status"
-                        target={<JiraIssueTransition issueKey={item.key} onUpdate={handleRefresh} />}
+                        target={<JiraIssueTransitionForm issueKey={item.key} onUpdate={handleRefresh} />}
                         icon={Icon.Switch}
                         shortcut={{ modifiers: ["cmd"], key: "t" }}
                       />
@@ -241,7 +229,6 @@ function JiraBoardView() {
                         onAction={handleRefresh}
                       />
                       <DebugActions />
-                      <Action title="Clear Cache" icon={Icon.Trash} onAction={clearAllCacheWithToast} />
                     </ActionPanel>
                   }
                 />

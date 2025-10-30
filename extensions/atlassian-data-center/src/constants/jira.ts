@@ -17,7 +17,7 @@ export const JIRA_ISSUE_TYPE_ICON_MAP = {
 } as const satisfies Record<JiraIssueTypeName, string>;
 
 /**
- * Note: The values of JIRA_ISSUE_PRIORITY_NAME are all uppercase (e.g., "MAJOR").
+ * Note: The values of JIRA_ISSUE_PRIORITY_NAME are all uppercase (e.g. "MAJOR").
  * The Jira API may return priority values in different cases, such as "Major", "MAJOR", or "major".
  * When comparing, always use `priority.toUpperCase()` before comparing with JIRA_ISSUE_PRIORITY_NAME.
  */

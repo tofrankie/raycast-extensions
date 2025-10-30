@@ -2,8 +2,7 @@ import { useState, useEffect, useMemo } from "react";
 import { List, ActionPanel, Action, Icon, showToast, Toast } from "@raycast/api";
 import { showFailureToast } from "@raycast/utils";
 
-import QueryProvider from "@/query-provider";
-import { SearchBarAccessory, QueryWrapper, DebugActions } from "@/components";
+import { SearchBarAccessory, QueryProvider, QueryWrapper, DebugActions } from "@/components";
 import { AVATAR_TYPE, COMMAND_NAME, PAGINATION_SIZE, QUERY_TYPE, CONFLUENCE_SEARCH_CONTENT_FILTERS } from "@/constants";
 import {
   useConfluenceSearchContentInfiniteQuery,
@@ -12,7 +11,6 @@ import {
   useConfluenceCurrentUser,
 } from "@/hooks";
 import {
-  clearAllCacheWithToast,
   avatarExtractors,
   getSectionTitle,
   processUserInputAndFilter,
@@ -26,15 +24,15 @@ import type { SearchFilter } from "@/types";
 const EMPTY_INFINITE_DATA = { items: [], hasMore: false, totalCount: 0 };
 const DEFAULT_FILTER = CONFLUENCE_SEARCH_CONTENT_FILTERS.find((item) => item.value === "viewed_recently");
 
-export default function ConfluenceSearchContentProvider() {
+export default function ConfluenceSearchContentsProvider() {
   return (
     <QueryProvider>
-      <ConfluenceSearchContent />
+      <ConfluenceSearchContents />
     </QueryProvider>
   );
 }
 
-function ConfluenceSearchContent() {
+function ConfluenceSearchContents() {
   const [searchText, setSearchText] = useState("");
   const [filter, setFilter] = useState<SearchFilter | null>(null);
 
@@ -236,7 +234,6 @@ function ConfluenceSearchContent() {
                         onAction={handleRefresh}
                       />
                       <DebugActions />
-                      <Action title="Clear Cache" icon={Icon.Trash} onAction={clearAllCacheWithToast} />
                     </ActionPanel>
                   }
                 />

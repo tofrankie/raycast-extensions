@@ -1,11 +1,11 @@
 import type { ListItemIcon, ListItemSubtitle, ListItemAccessories, ListItemTitle } from "@/types";
 
-export interface BaseProcessedItem {
+export interface ProcessedBase {
   renderKey: string;
   title: ListItemTitle;
 }
 
-export interface ProcessedConfluenceContentItem extends BaseProcessedItem {
+export interface ProcessedConfluenceContent extends ProcessedBase {
   id: string;
   icon: ListItemIcon;
   subtitle: ListItemSubtitle;
@@ -21,7 +21,7 @@ export interface ProcessedConfluenceContentItem extends BaseProcessedItem {
   creatorAvatarCacheKey?: string;
 }
 
-export interface ProcessedConfluenceUserItem extends BaseProcessedItem {
+export interface ProcessedConfluenceUser extends ProcessedBase {
   /**
    * Anonymous user may not have userKey, use username as fallback
    */
@@ -35,7 +35,7 @@ export interface ProcessedConfluenceUserItem extends BaseProcessedItem {
   avatarCacheKey?: string;
 }
 
-export interface ProcessedConfluenceSpaceItem extends BaseProcessedItem {
+export interface ProcessedConfluenceSpace extends ProcessedBase {
   key: string;
   name: string;
   icon: ListItemIcon;
@@ -46,7 +46,7 @@ export interface ProcessedConfluenceSpaceItem extends BaseProcessedItem {
   avatarCacheKey?: string;
 }
 
-export interface ProcessedJiraFieldItem extends BaseProcessedItem {
+export interface ProcessedJiraField extends ProcessedBase {
   id: string;
   name: string;
   subtitle: ListItemSubtitle;
@@ -59,7 +59,7 @@ export interface ProcessedJiraFieldItem extends BaseProcessedItem {
   };
 }
 
-export interface ProcessedJiraIssueItem extends BaseProcessedItem {
+export interface ProcessedJiraIssue extends ProcessedBase {
   key: string;
   summary: string;
   icon: ListItemIcon;
@@ -69,7 +69,7 @@ export interface ProcessedJiraIssueItem extends BaseProcessedItem {
   editUrl: string;
 }
 
-export interface ProcessedJiraBoardIssueItem extends BaseProcessedItem {
+export interface ProcessedJiraBoardIssue extends ProcessedBase {
   key: string;
   summary: string;
   icon: ListItemIcon;
@@ -80,7 +80,7 @@ export interface ProcessedJiraBoardIssueItem extends BaseProcessedItem {
   keywords: string[];
 }
 
-export interface ProcessedWorklogItem extends BaseProcessedItem {
+export interface ProcessedWorklog extends ProcessedBase {
   keywords: string[];
   subtitle: string;
   icon: string;
@@ -91,13 +91,14 @@ export interface ProcessedWorklogItem extends BaseProcessedItem {
   comment: string;
   date: string;
   issueKey: string;
+  worklogId: number;
 }
 
 export interface WorklogGroup {
   date: string;
   totalTimeSpent: string;
   totalTimeSpentSeconds: number;
-  items: ProcessedWorklogItem[];
+  items: ProcessedWorklog[];
   title: string;
   subtitle: string;
 }

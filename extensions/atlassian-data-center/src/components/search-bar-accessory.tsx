@@ -9,7 +9,7 @@ interface SearchBarAccessoryProps {
   onChange: (filter: SearchFilter | null) => void;
 }
 
-export function SearchBarAccessory({ commandName, value, onChange }: SearchBarAccessoryProps) {
+export default function SearchBarAccessory({ commandName, value, onChange }: SearchBarAccessoryProps) {
   const filters = SEARCH_BAR_ACCESSORY_CONFIGS[commandName];
 
   const handleFilterChange = (filterValue: string) => {

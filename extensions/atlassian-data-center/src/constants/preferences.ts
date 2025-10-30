@@ -18,21 +18,33 @@ export const REPLACE_CURRENT_USER = preferences.replaceCurrentUser;
 export const CURRENT_PAT = commandName?.startsWith("jira-") ? JIRA_PAT : CONFLUENCE_PAT;
 export const CURRENT_BASE_URL = commandName?.startsWith("jira-") ? JIRA_BASE_URL : CONFLUENCE_BASE_URL;
 
-const DEFAULT_DAILY_WORK_HOURS = 8;
-export const DAILY_WORK_HOURS = formatDailyWorkHours(worklogViewPreferences.jiraDailyWorkHours);
-export const DAILY_WORK_SECONDS = DAILY_WORK_HOURS * 3600;
+const DEFAULT_WORKING_DAYS_PER_WEEK = 5;
+const DEFAULT_WORKING_HOURS_PER_DAY = 8;
+export const WORKING_DAYS_PER_WEEK = formatWorkingDaysPerWeek(worklogViewPreferences.jiraWorkingDaysPerWeek);
+export const WORKING_HOURS_PER_DAY = formatWorkingHoursPerDay(worklogViewPreferences.jiraWorkingHoursPerDay);
+export const WORKING_SERCONDS_PER_DAY = WORKING_HOURS_PER_DAY * 3600;
 
 function formatPaginationSize(paginationSize: string) {
   const size = parseInt(paginationSize);
   return size > 0 ? size : DEFAULT_PAGINATION_SIZE;
 }
 
-function formatDailyWorkHours(input: string): number {
-  const validFormat = /^\d+(\.\d{1,2})?$/;
+function formatWorkingHoursPerDay(input: string): number {
+  const validFormat = /^\d+(\.\d{1})?$/;
 
   if (!validFormat.test(input)) {
-    return DEFAULT_DAILY_WORK_HOURS;
+    return DEFAULT_WORKING_HOURS_PER_DAY;
   }
 
   return parseFloat(input);
+}
+
+function formatWorkingDaysPerWeek(input: string): number {
+  const validFormat = /^\d+$/;
+
+  if (!validFormat.test(input)) {
+    return DEFAULT_WORKING_DAYS_PER_WEEK;
+  }
+
+  return parseInt(input);
 }

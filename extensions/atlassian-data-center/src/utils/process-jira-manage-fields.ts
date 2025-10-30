@@ -2,7 +2,7 @@ import { Icon } from "@raycast/api";
 
 import { CACHE_KEY } from "@/constants";
 import { jiraSelectedFieldsCache } from "@/utils";
-import type { JiraField, ListItemAccessories, ProcessedJiraFieldItem } from "@/types";
+import type { JiraField, ListItemAccessories, ProcessedJiraField } from "@/types";
 
 export function getSelectedFields(): JiraField[] {
   const cached = jiraSelectedFieldsCache.get(CACHE_KEY.JIRA_SELECTED_FIELDS);
@@ -30,7 +30,7 @@ export function removeSelectedField(fieldId: string): void {
   setSelectedFields(current.filter((field) => field.id !== fieldId));
 }
 
-export function processJiraFieldItem(field: JiraField, isAdded: boolean): ProcessedJiraFieldItem {
+export function processJiraFieldItem(field: JiraField, isAdded: boolean): ProcessedJiraField {
   const schemaType = field.schema?.type || "Unknown";
   const subtitle = {
     value: field.id,

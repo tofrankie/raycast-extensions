@@ -7,7 +7,7 @@ import {
 } from "@/utils";
 import type {
   JiraBoardIssue,
-  ProcessedJiraBoardIssueItem,
+  ProcessedJiraBoardIssue,
   ListItemAccessories,
   ListItemSubtitle,
   JiraSprintResponse,
@@ -23,7 +23,7 @@ export function processJiraBoardIssues(
   issues: JiraBoardIssue[],
   selectedFields: JiraField[],
   boardConfiguration?: JiraBoardConfiguration,
-): ProcessedJiraBoardIssueItem[] {
+): ProcessedJiraBoardIssue[] {
   return issues.map((issue) => {
     const { fields, key, id } = issue;
 
@@ -169,11 +169,11 @@ function buildKeywords(issue: JiraBoardIssue, boardConfiguration?: JiraBoardConf
 export function processAndGroupIssues(
   issues: JiraBoardIssue[],
   boardConfiguration: JiraBoardConfiguration,
-): Record<string, ProcessedJiraBoardIssueItem[]> {
+): Record<string, ProcessedJiraBoardIssue[]> {
   const selectedFields = getSelectedFields();
   const processedIssues = processJiraBoardIssues(issues, selectedFields, boardConfiguration);
 
-  const grouped: Record<string, ProcessedJiraBoardIssueItem[]> = {};
+  const grouped: Record<string, ProcessedJiraBoardIssue[]> = {};
   const columns = boardConfiguration.columnConfig.columns;
 
   columns.forEach((column) => {

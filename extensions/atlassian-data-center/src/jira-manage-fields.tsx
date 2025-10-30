@@ -2,23 +2,22 @@ import { useState, useEffect, useMemo } from "react";
 import { List, ActionPanel, Action, Icon, showToast, Toast } from "@raycast/api";
 import { showFailureToast } from "@raycast/utils";
 
-import QueryProvider from "@/query-provider";
-import { DebugActions } from "@/components";
+import { QueryProvider, DebugActions } from "@/components";
 import { useJiraFieldQuery } from "@/hooks";
-import { getSelectedFields, addSelectedField, removeSelectedField, clearAllCacheWithToast } from "@/utils";
-import type { JiraField, ProcessedJiraFieldItem } from "@/types";
+import { getSelectedFields, addSelectedField, removeSelectedField } from "@/utils";
+import type { JiraField, ProcessedJiraField } from "@/types";
 
-const EMPTY_FIELDS: ProcessedJiraFieldItem[] = [];
+const EMPTY_FIELDS: ProcessedJiraField[] = [];
 
-export default function JiraManageFieldProvider() {
+export default function JiraManageFieldsProvider() {
   return (
     <QueryProvider>
-      <JiraManageFieldContent />
+      <JiraManageFields />
     </QueryProvider>
   );
 }
 
-function JiraManageFieldContent() {
+function JiraManageFields() {
   const [searchText, setSearchText] = useState("");
   const [addedFields, setAddedFields] = useState<JiraField[]>([]);
 
@@ -52,7 +51,7 @@ function JiraManageFieldContent() {
     };
   }, [data, searchText, addedFields]);
 
-  const handleToggleField = (field: ProcessedJiraFieldItem) => {
+  const handleToggleField = (field: ProcessedJiraField) => {
     const isAdded = addedFields.some((item) => item.id === field.id);
 
     if (isAdded) {
@@ -75,11 +74,11 @@ function JiraManageFieldContent() {
   };
 
   const isFieldAdded = useMemo(() => {
-    return (field: ProcessedJiraFieldItem) => addedFields.some((item) => item.id === field.id);
+    return (field: ProcessedJiraField) => addedFields.some((item) => item.id === field.id);
   }, [addedFields]);
 
   const isUserField = useMemo(() => {
-    return (field: ProcessedJiraFieldItem) => field.schema?.type === "user";
+    return (field: ProcessedJiraField) => field.schema?.type === "user";
   }, []);
 
   const noFieldsAvailable = isSuccess && !data.length;
@@ -157,7 +156,6 @@ function JiraManageFieldContent() {
                           onAction={handleRefresh}
                         />
                         <DebugActions />
-                        <Action title="Clear Cache" icon={Icon.Trash} onAction={clearAllCacheWithToast} />
                       </ActionPanel>
                     }
                   />
@@ -205,7 +203,6 @@ function JiraManageFieldContent() {
                           onAction={handleRefresh}
                         />
                         <DebugActions />
-                        <Action title="Clear Cache" icon={Icon.Trash} onAction={clearAllCacheWithToast} />
                       </ActionPanel>
                     }
                   />
@@ -227,7 +224,6 @@ function JiraManageFieldContent() {
                     <ActionPanel>
                       <Action.CopyToClipboard title="Copy Field ID" content={item.id} />
                       <DebugActions />
-                      <Action title="Clear Cache" icon={Icon.Trash} onAction={clearAllCacheWithToast} />
                     </ActionPanel>
                   }
                 />

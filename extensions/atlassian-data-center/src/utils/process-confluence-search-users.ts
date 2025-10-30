@@ -9,9 +9,9 @@ import {
   CONFLUENCE_TYPE_ICON,
   CACHE_KEY,
 } from "@/constants";
-import type { ConfluenceSearchResult, ProcessedConfluenceUserItem, ConfluenceCurrentUser } from "@/types";
+import type { ConfluenceSearchResult, ProcessedConfluenceUser, ConfluenceCurrentUser } from "@/types";
 
-export function processConfluenceSearchUserItems(items: ConfluenceSearchResult[]): ProcessedConfluenceUserItem[] {
+export function processConfluenceSearchUsers(items: ConfluenceSearchResult[]): ProcessedConfluenceUser[] {
   const cachedCurrentUser = confluenceCurrentUserCache.get(CACHE_KEY.CONFLUENCE_CURRENT_USER);
   const currentUser = cachedCurrentUser ? JSON.parse(cachedCurrentUser) : null;
   return items.map((item) => processConfluenceSearchUserItem(item, currentUser));
@@ -20,7 +20,7 @@ export function processConfluenceSearchUserItems(items: ConfluenceSearchResult[]
 function processConfluenceSearchUserItem(
   item: ConfluenceSearchResult,
   currentUser: ConfluenceCurrentUser | null,
-): ProcessedConfluenceUserItem {
+): ProcessedConfluenceUser {
   const user = item.user!;
 
   const title = user.displayName;

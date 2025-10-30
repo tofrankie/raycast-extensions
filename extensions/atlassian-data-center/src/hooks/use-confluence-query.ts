@@ -9,21 +9,21 @@ import {
   addToFavorite,
   removeFromFavorite,
   getConfluenceCurrentUser,
-  processConfluenceSearchUserItems,
-  processConfluenceSearchSpaceItems,
-  processConfluenceSearchContentItems,
+  processConfluenceSearchUsers,
+  processConfluenceSearchSpaces,
+  processConfluenceSearchContents,
 } from "@/utils";
 import type {
   ConfluenceSearchContentResponse,
   ConfluenceSearchResponse,
   ConfluenceCurrentUser,
-  ProcessedConfluenceContentItem,
-  ProcessedConfluenceUserItem,
-  ProcessedConfluenceSpaceItem,
+  ProcessedConfluenceContent,
+  ProcessedConfluenceUser,
+  ProcessedConfluenceSpace,
 } from "@/types";
 
 export const useConfluenceSearchContentInfiniteQuery = <
-  TData = { items: ProcessedConfluenceContentItem[]; hasMore: boolean; totalCount: number },
+  TData = { items: ProcessedConfluenceContent[]; hasMore: boolean; totalCount: number },
 >(
   cql: string,
   queryOptions?: Partial<UseInfiniteQueryOptions<ConfluenceSearchContentResponse, Error, TData>>,
@@ -36,7 +36,7 @@ export const useConfluenceSearchContentInfiniteQuery = <
       return await searchContent({ cql, limit: PAGINATION_SIZE, start });
     },
     select: (data) => {
-      const items = data.pages.flatMap((page) => processConfluenceSearchContentItems(page.results));
+      const items = data.pages.flatMap((page) => processConfluenceSearchContents(page.results));
       const hasMore = data.pages.length > 0 ? !!data.pages[data.pages.length - 1]?._links?.next : false;
       const totalCount = data.pages[0]?.totalCount || data.pages[0]?.totalSize || 0;
 
@@ -127,7 +127,7 @@ export const useToggleFavorite = () => {
 };
 
 export const useConfluenceSearchUserInfiniteQuery = <
-  TData = { items: ProcessedConfluenceUserItem[]; hasMore: boolean; totalCount: number },
+  TData = { items: ProcessedConfluenceUser[]; hasMore: boolean; totalCount: number },
 >(
   cql: string,
   queryOptions?: Partial<UseInfiniteQueryOptions<ConfluenceSearchResponse, Error, TData>>,
@@ -147,7 +147,7 @@ export const useConfluenceSearchUserInfiniteQuery = <
         (result, index, self) => index === self.findIndex((r) => r.user?.userKey === result.user?.userKey),
       );
 
-      const processedUsers = processConfluenceSearchUserItems(uniqueResults);
+      const processedUsers = processConfluenceSearchUsers(uniqueResults);
 
       const hasMore = data.pages.length > 0 ? !!data.pages[data.pages.length - 1]?._links?.next : false;
 
@@ -172,7 +172,7 @@ export const useConfluenceSearchUserInfiniteQuery = <
 };
 
 export const useConfluenceSearchSpaceInfiniteQuery = <
-  TData = { items: ProcessedConfluenceSpaceItem[]; hasMore: boolean; totalCount: number },
+  TData = { items: ProcessedConfluenceSpace[]; hasMore: boolean; totalCount: number },
 >(
   cql: string,
   queryOptions?: Partial<UseInfiniteQueryOptions<ConfluenceSearchResponse, Error, TData>>,
@@ -192,7 +192,7 @@ export const useConfluenceSearchSpaceInfiniteQuery = <
         (result, index, self) => index === self.findIndex((r) => r.space?.key === result.space?.key),
       );
 
-      const processedSpaces = processConfluenceSearchSpaceItems(uniqueResults);
+      const processedSpaces = processConfluenceSearchSpaces(uniqueResults);
 
       const hasMore = data.pages.length > 0 ? !!data.pages[data.pages.length - 1]?._links?.next : false;
       const totalCount = data.pages[0]?.totalCount || data.pages[0]?.totalSize || 0;

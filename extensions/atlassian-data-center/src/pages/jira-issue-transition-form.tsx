@@ -2,7 +2,7 @@ import { useState, useEffect, useMemo } from "react";
 import { Form, ActionPanel, Action, Icon, showToast, Toast, useNavigation } from "@raycast/api";
 import { showFailureToast } from "@raycast/utils";
 
-import QueryProvider from "@/query-provider";
+import { QueryProvider } from "@/components";
 import {
   useJiraCurrentUser,
   useJiraIssueQuery,
@@ -15,15 +15,15 @@ interface JiraIssueTransitionProps {
   onUpdate?: () => void;
 }
 
-export function JiraIssueTransition(props: JiraIssueTransitionProps) {
+export default function JiraIssueTransitionFormProvider(props: JiraIssueTransitionProps) {
   return (
     <QueryProvider>
-      <JiraIssueTransitionContent {...props} />
+      <JiraIssueTransitionForm {...props} />
     </QueryProvider>
   );
 }
 
-function JiraIssueTransitionContent({ issueKey, onUpdate }: JiraIssueTransitionProps) {
+function JiraIssueTransitionForm({ issueKey, onUpdate }: JiraIssueTransitionProps) {
   const { pop } = useNavigation();
   const [selectedTransitionId, setSelectedTransitionId] = useState<string>("");
   const { currentUser } = useJiraCurrentUser();
@@ -95,7 +95,7 @@ function JiraIssueTransitionContent({ issueKey, onUpdate }: JiraIssueTransitionP
     if (!issue || !transitions) return [];
     return transitions.transitions
       .filter((transition) => transition.to.id !== issue.fields.status?.id)
-      .map((item) => ({ ...item, displayName: `${item.name} (${item.to.name})` }));
+      .map((item) => ({ ...item, displayName: `${item.name} (${issue.fields.status?.name} → ${item.to.name})` }));
   }, [issue, transitions]);
 
   const displayValues = useMemo(() => {
@@ -105,7 +105,7 @@ function JiraIssueTransitionContent({ issueKey, onUpdate }: JiraIssueTransitionP
 
     const assigneeName = issue.fields.assignee?.displayName;
     const isAssignee = currentUser?.key === issue.fields.assignee?.key;
-    const assigneeTips = !isAssignee ? " (not assigned to you)" : "";
+    const assigneeTips = isAssignee ? "" : " (not assigned to you)";
     return {
       issueKey: issue.key,
       summary: issue.fields.summary,
@@ -138,7 +138,7 @@ function JiraIssueTransitionContent({ issueKey, onUpdate }: JiraIssueTransitionP
       ) : (
         <Form.Dropdown
           id="transitionId"
-          title="Transition Action"
+          title="Action"
           placeholder="Select transition action..."
           value={selectedTransitionId}
           onChange={setSelectedTransitionId}

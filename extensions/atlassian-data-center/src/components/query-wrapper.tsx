@@ -15,7 +15,8 @@ interface QueryWrapperProps {
   children: React.ReactNode;
 }
 
-export function QueryWrapper({ query, queryType, children }: QueryWrapperProps) {
+// TODO: rename
+export default function QueryWrapper({ query, queryType, children }: QueryWrapperProps) {
   const isQuery = queryType === QUERY_TYPE.JQL ? isJQL : isCQL;
 
   if (!isQuery(query)) {

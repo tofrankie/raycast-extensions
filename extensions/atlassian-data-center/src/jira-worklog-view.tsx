@@ -2,11 +2,11 @@ import { useState, useMemo, useEffect } from "react";
 import { List, ActionPanel, Action, Icon, showToast, Toast } from "@raycast/api";
 import { showFailureToast } from "@raycast/utils";
 
-import QueryProvider from "@/query-provider";
-import { QueryWrapper, DebugActions } from "@/components";
-import { clearAllCacheWithToast, copyToClipboardWithToast } from "@/utils";
-import { QUERY_TYPE, JIRA_WORKLOG_RANGE } from "@/constants";
-import { useJiraWorklogQuery, useJiraCurrentUser } from "@/hooks";
+import { QueryProvider, DebugActions } from "@/components";
+import { JiraWorklogForm } from "@/pages";
+import { copyToClipboardWithToast } from "@/utils";
+import { JIRA_WORKLOG_RANGE } from "@/constants";
+import { useJiraWorklogsQuery, useJiraCurrentUser } from "@/hooks";
 import { getDateRange } from "@/utils";
 
 interface WorklogFilter {
@@ -42,7 +42,7 @@ function JiraWorklogView() {
     isLoading,
     isSuccess,
     refetch,
-  } = useJiraWorklogQuery({ userKey: currentUser?.key, from, to });
+  } = useJiraWorklogsQuery({ userKey: currentUser?.key, from, to });
 
   useEffect(() => {
     if (currentUserError) {
@@ -92,49 +92,65 @@ function JiraWorklogView() {
         </List.Dropdown>
       }
     >
-      <QueryWrapper query="" queryType={QUERY_TYPE.JQL}>
-        {isEmpty ? (
-          <List.EmptyView
-            icon={Icon.MagnifyingGlass}
-            title="No Results"
-            description="No worklogs found for selected time range"
-            actions={
-              <ActionPanel>
-                <Action title="Refresh" icon={Icon.ArrowClockwise} onAction={handleRefresh} />
-              </ActionPanel>
-            }
-          />
-        ) : (
-          worklogGroups.map((group) => (
-            <List.Section key={group.date} title={group.title} subtitle={group.subtitle}>
-              {group.items.map((item) => (
-                <List.Item
-                  key={item.renderKey}
-                  keywords={item.keywords}
-                  icon={item.icon}
-                  title={item.title}
-                  subtitle={item.subtitle}
-                  accessories={item.accessories}
-                  actions={
-                    <ActionPanel>
-                      <Action.OpenInBrowser title="Open in Browser" url={item.url} />
-                      <Action title="Copy JQL" icon={Icon.CopyClipboard} onAction={() => copyJQL()} />
-                      <Action
-                        title="Refresh"
-                        icon={Icon.ArrowClockwise}
-                        shortcut={{ modifiers: ["cmd"], key: "r" }}
-                        onAction={handleRefresh}
-                      />
-                      <DebugActions />
-                      <Action title="Clear Cache" icon={Icon.Trash} onAction={clearAllCacheWithToast} />
-                    </ActionPanel>
-                  }
-                />
-              ))}
-            </List.Section>
-          ))
-        )}
-      </QueryWrapper>
+      {isEmpty ? (
+        <List.EmptyView
+          icon={Icon.MagnifyingGlass}
+          title="No Results"
+          description="No worklogs found for selected time range"
+          actions={
+            <ActionPanel>
+              <Action title="Refresh" icon={Icon.ArrowClockwise} onAction={handleRefresh} />
+            </ActionPanel>
+          }
+        />
+      ) : (
+        worklogGroups.map((group) => (
+          <List.Section key={group.date} title={group.title} subtitle={group.subtitle}>
+            {group.items.map((item) => (
+              <List.Item
+                key={item.renderKey}
+                keywords={item.keywords}
+                icon={item.icon}
+                title={item.title}
+                subtitle={item.subtitle}
+                accessories={item.accessories}
+                actions={
+                  <ActionPanel>
+                    <Action.OpenInBrowser title="Open in Browser" url={item.url} />
+                    <Action.Push
+                      title="Create Worklog"
+                      target={<JiraWorklogForm issueKey={item.issueKey} onUpdate={handleRefresh} />}
+                      icon={Icon.Plus}
+                      shortcut={{ modifiers: ["cmd", "shift"], key: "n" }}
+                    />
+                    <Action.Push
+                      title="Edit Worklog"
+                      target={
+                        <JiraWorklogForm issueKey={item.issueKey} worklogId={item.worklogId} onUpdate={handleRefresh} />
+                      }
+                      icon={Icon.Pencil}
+                      shortcut={{ modifiers: ["cmd", "shift"], key: "e" }}
+                    />
+                    <Action
+                      title="Copy JQL"
+                      icon={Icon.CopyClipboard}
+                      onAction={() => copyJQL()}
+                      shortcut={{ modifiers: ["cmd", "shift"], key: "c" }}
+                    />
+                    <Action
+                      title="Refresh"
+                      icon={Icon.ArrowClockwise}
+                      shortcut={{ modifiers: ["cmd"], key: "r" }}
+                      onAction={handleRefresh}
+                    />
+                    <DebugActions />
+                  </ActionPanel>
+                }
+              />
+            ))}
+          </List.Section>
+        ))
+      )}
     </List>
   );
 }

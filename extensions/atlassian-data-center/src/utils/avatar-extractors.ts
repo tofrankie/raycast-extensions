@@ -1,8 +1,8 @@
 import type {
   AvatarList,
-  ProcessedConfluenceUserItem,
-  ProcessedConfluenceSpaceItem,
-  ProcessedConfluenceContentItem,
+  ProcessedConfluenceUser,
+  ProcessedConfluenceSpace,
+  ProcessedConfluenceContent,
 } from "@/types";
 
 export const extractUserAvatar = <T extends { avatarUrl: string; avatarCacheKey?: string }>(items: T[]): AvatarList =>
@@ -18,7 +18,7 @@ export const extractCreatorAvatar = <T extends { creatorAvatarUrl: string; creat
     .map((item) => ({ url: item.creatorAvatarUrl, key: item.creatorAvatarCacheKey! }));
 
 export const avatarExtractors = {
-  confluenceUser: (items: ProcessedConfluenceUserItem[]): AvatarList => extractUserAvatar(items),
-  confluenceSpace: (items: ProcessedConfluenceSpaceItem[]): AvatarList => extractUserAvatar(items),
-  confluenceContentCreator: (items: ProcessedConfluenceContentItem[]): AvatarList => extractCreatorAvatar(items),
+  confluenceUser: (items: ProcessedConfluenceUser[]): AvatarList => extractUserAvatar(items),
+  confluenceSpace: (items: ProcessedConfluenceSpace[]): AvatarList => extractUserAvatar(items),
+  confluenceContentCreator: (items: ProcessedConfluenceContent[]): AvatarList => extractCreatorAvatar(items),
 } as const;

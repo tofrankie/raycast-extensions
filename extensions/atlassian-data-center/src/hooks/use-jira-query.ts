@@ -9,7 +9,7 @@ import {
   getJiraField,
   getJiraProject,
   getJiraCurrentUser,
-  getJiraWorklog,
+  getJiraWorklogs,
   processJiraWorklog,
   getSelectedFields,
   getSelectedFieldIds,
@@ -20,13 +20,13 @@ import type {
   JiraProject,
   JiraCurrentUser,
   JiraWorklog,
-  ProcessedJiraIssueItem,
-  ProcessedJiraFieldItem,
+  ProcessedJiraIssue,
+  ProcessedJiraField,
   WorklogGroup,
 } from "@/types";
 
 export function useJiraSearchIssueInfiniteQuery<
-  TData = { issues: ProcessedJiraIssueItem[]; hasMore: boolean; totalCount: number },
+  TData = { issues: ProcessedJiraIssue[]; hasMore: boolean; totalCount: number },
 >(jql: string, queryOptions?: Partial<UseInfiniteQueryOptions<JiraSearchIssueResponse, Error, TData>>) {
   return useInfiniteQuery<JiraSearchIssueResponse, Error, TData>({
     queryKey: [COMMAND_NAME.JIRA_SEARCH_ISSUE, { jql, pageSize: PAGINATION_SIZE }],
@@ -50,7 +50,7 @@ export function useJiraSearchIssueInfiniteQuery<
       const fieldsNameMap = data.pages[0]?.names;
       const totalCount = data.pages[0]?.total;
       const selectedFields = getSelectedFields();
-      const processedIssues: ProcessedJiraIssueItem[] = allIssue.map((issue) =>
+      const processedIssues: ProcessedJiraIssue[] = allIssue.map((issue) =>
         processJiraSearchIssue(issue, selectedFields, fieldsNameMap),
       );
 
@@ -80,7 +80,7 @@ export function useJiraSearchIssueInfiniteQuery<
   });
 }
 
-export function useJiraFieldQuery<TData = ProcessedJiraFieldItem[]>(
+export function useJiraFieldQuery<TData = ProcessedJiraField[]>(
   queryOptions?: Partial<UseQueryOptions<JiraField[], Error, TData>>,
 ) {
   return useQuery<JiraField[], Error, TData>({
@@ -117,15 +117,15 @@ export function useJiraCurrentUserQuery<TData = JiraCurrentUser | null>(
   });
 }
 
-export function useJiraWorklogQuery<TData = WorklogGroup[]>(
+export function useJiraWorklogsQuery<TData = WorklogGroup[]>(
   { userKey, from, to }: { userKey: string | undefined; from: string; to: string },
   queryOptions?: Partial<UseQueryOptions<JiraWorklog[], Error, TData>>,
 ) {
   return useQuery<JiraWorklog[], Error, TData>({
-    queryKey: [COMMAND_NAME.JIRA_WORKLOG, { userKey, from, to }],
+    queryKey: [COMMAND_NAME.JIRA_WORKLOG_VIEW, { userKey, from, to }],
     queryFn: async () => {
       if (!userKey) return [];
-      return await getJiraWorklog({ from, to, worker: [userKey] });
+      return await getJiraWorklogs({ from, to, worker: [userKey] });
     },
     enabled: !!userKey,
     select: (data) => processJiraWorklog(data) as TData,

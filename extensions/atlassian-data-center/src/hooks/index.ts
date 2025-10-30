@@ -6,3 +6,4 @@ export * from "./use-jira-query";
 export * from "./use-jira-current-user";
 export * from "./use-jira-issue";
 export * from "./use-jira-board-view";
+export * from "./use-jira-worklog";

@@ -12,6 +12,8 @@ import type {
   JiraSprintResponse,
   JiraBoardConfiguration,
   JiraBoardIssueResponse,
+  JiraWorklogCreateParams,
+  JiraWorklogUpdateParams,
 } from "@/types";
 
 type JiraSearchIssueParams = {
@@ -70,18 +72,18 @@ export async function getJiraCurrentUser(): Promise<JiraCurrentUser | null> {
   });
 }
 
-type JiraWorklogParams = {
+type JiraWorklogsParams = {
   from: string;
   to: string;
   worker: string[];
 };
 
-export async function getJiraWorklog(params: JiraWorklogParams): Promise<JiraWorklog[]> {
-  const data = await jiraRequest<JiraWorklog[]>({ method: "POST", url: JIRA_API.WORKLOG, params });
+export async function getJiraWorklogs(params: JiraWorklogsParams): Promise<JiraWorklog[]> {
+  const data = await jiraRequest<JiraWorklog[]>({ method: "POST", url: JIRA_API.WORKLOG_SEARCH, params });
 
   return handleApiResponse({
     data,
-    fileName: COMMAND_NAME.JIRA_WORKLOG,
+    fileName: COMMAND_NAME.JIRA_WORKLOG_VIEW,
     defaultValue: [],
   });
 }
@@ -130,7 +132,7 @@ export async function getJiraBoards(): Promise<JiraBoardResponse> {
 
   return handleApiResponse({
     data,
-    fileName: COMMAND_NAME.JIRA_BOARD,
+    fileName: COMMAND_NAME.JIRA_BOARD_VIEW,
     defaultValue: {
       maxResults: 50,
       startAt: 0,
@@ -211,5 +213,45 @@ export async function getJiraBoardSprintIssues(
       total: 0,
       issues: [],
     },
+  });
+}
+
+export async function getJiraWorklogById(worklogId: number): Promise<JiraWorklog> {
+  const url = `${JIRA_API.WORKLOG}/${worklogId}`;
+  const data = await jiraRequest<JiraWorklog>({ method: "GET", url });
+
+  return handleApiResponse({
+    data,
+    fileName: "jira-worklog-detail",
+    defaultValue: {} as JiraWorklog,
+  });
+}
+
+export async function createJiraWorklog(params: JiraWorklogCreateParams): Promise<JiraWorklog> {
+  const data = await jiraRequest<JiraWorklog>({
+    method: "POST",
+    url: JIRA_API.WORKLOG,
+    params,
+  });
+
+  return handleApiResponse({
+    data,
+    fileName: "jira-worklog-create",
+    defaultValue: {} as JiraWorklog,
+  });
+}
+
+export async function updateJiraWorklog(worklogId: number, params: JiraWorklogUpdateParams): Promise<JiraWorklog> {
+  const url = `${JIRA_API.WORKLOG}/${worklogId}/`;
+  const data = await jiraRequest<JiraWorklog>({
+    method: "PUT",
+    url,
+    params,
+  });
+
+  return handleApiResponse({
+    data,
+    fileName: "jira-worklog-update",
+    defaultValue: {} as JiraWorklog,
   });
 }
