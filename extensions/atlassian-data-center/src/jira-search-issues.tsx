@@ -18,7 +18,7 @@ import {
 import type { ProcessedJiraIssue, SearchFilter } from "@/types";
 
 const EMPTY_INFINITE_DATA = { issues: [], hasMore: false, totalCount: 0 };
-const DEFAULT_FILTER = JIRA_SEARCH_ISSUE_FILTERS.find((item) => item.value === "open_issues");
+const DEFAULT_FILTER = JIRA_SEARCH_ISSUE_FILTERS.find((item) => item.value === "updated_recently");
 
 export default function JiraSearchIssuesProvider() {
   return (

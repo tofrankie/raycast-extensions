@@ -134,7 +134,7 @@ function JiraIssueTransitionForm({ issueKey, onUpdate }: JiraIssueTransitionProp
       <Form.Description title="Assignee" text={displayValues.assignee} />
       <Form.Description title="Status" text={displayValues.status} />
       {isTransitionsSuccess && !hasPermission ? (
-        <Form.Description title="Transition Action" text="⚠️ You don't have permission to transition this issue" />
+        <Form.Description title="Tips" text="⚠️ You don't have permission to transition this issue" />
       ) : (
         <Form.Dropdown
           id="transitionId"
