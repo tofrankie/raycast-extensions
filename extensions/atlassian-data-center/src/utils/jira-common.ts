@@ -1,4 +1,5 @@
 import { JIRA_BASE_URL, JIRA_ISSUE_TYPE_ICON_MAP, JIRA_ISSUE_PRIORITY_ICON_MAP } from "@/constants";
+import type { ListItemAccessories } from "@/types";
 
 export function getIssuePriorityIcon(priority: string): string | undefined {
   const normalizedPriority = priority.toUpperCase();
@@ -70,4 +71,39 @@ export function isIssueKey(input: string): boolean {
  */
 export function isIssueNumber(input: string): boolean {
   return /^\d+$/.test(input);
+}
+
+/**
+ * Build accessories for priority and status
+ * Used in process-jira-search-issues.ts and process-jira-board-view.ts
+ */
+export function buildPriorityAndStatusAccessories(
+  priority?: string | null,
+  status?: string | null,
+): NonNullable<ListItemAccessories> {
+  const accessories: NonNullable<ListItemAccessories> = [];
+
+  if (priority) {
+    const priorityIcon = getIssuePriorityIcon(priority);
+    if (priorityIcon) {
+      accessories.push({
+        icon: priorityIcon,
+        tooltip: `Priority: ${priority}`,
+      });
+    } else {
+      accessories.push({
+        tag: priority,
+        tooltip: `Priority: ${priority}`,
+      });
+    }
+  }
+
+  if (status) {
+    accessories.push({
+      tag: status,
+      tooltip: `Status: ${status}`,
+    });
+  }
+
+  return accessories;
 }

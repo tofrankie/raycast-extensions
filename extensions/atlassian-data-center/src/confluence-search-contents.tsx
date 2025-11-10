@@ -1,14 +1,15 @@
-import { useState, useEffect, useMemo } from "react";
-import { List, ActionPanel, Action, Icon, showToast, Toast } from "@raycast/api";
-import { showFailureToast } from "@raycast/utils";
+import { useState, useMemo } from "react";
+import { List, ActionPanel, Action, Icon } from "@raycast/api";
 
-import { SearchBarAccessory, QueryProvider, QueryWrapper, DebugActions } from "@/components";
+import { SearchBarAccessory, withQuery, DebugActions } from "@/components";
 import { AVATAR_TYPE, COMMAND_NAME, PAGINATION_SIZE, QUERY_TYPE, CONFLUENCE_SEARCH_CONTENT_FILTERS } from "@/constants";
 import {
-  useConfluenceSearchContentInfiniteQuery,
+  useConfluenceSearchContentsInfiniteQuery,
   useToggleFavorite,
   useAvatar,
   useConfluenceCurrentUser,
+  useRefetchWithToast,
+  useFetchNextPageWithToast,
 } from "@/hooks";
 import {
   avatarExtractors,
@@ -21,16 +22,10 @@ import {
 } from "@/utils";
 import type { SearchFilter } from "@/types";
 
-const EMPTY_INFINITE_DATA = { items: [], hasMore: false, totalCount: 0 };
+const EMPTY_INFINITE_DATA = { list: [], total: 0 };
 const DEFAULT_FILTER = CONFLUENCE_SEARCH_CONTENT_FILTERS.find((item) => item.value === "updated_recently");
 
-export default function ConfluenceSearchContentsProvider() {
-  return (
-    <QueryProvider>
-      <ConfluenceSearchContents />
-    </QueryProvider>
-  );
-}
+export default withQuery(ConfluenceSearchContents);
 
 function ConfluenceSearchContents() {
   const [searchText, setSearchText] = useState("");
@@ -78,58 +73,43 @@ function ConfluenceSearchContents() {
   const {
     data = EMPTY_INFINITE_DATA,
     fetchNextPage,
+    hasNextPage,
     isFetchingNextPage,
     isLoading,
     isSuccess,
-    error,
     refetch,
-  } = useConfluenceSearchContentInfiniteQuery(cql);
+  } = useConfluenceSearchContentsInfiniteQuery(cql, {
+    enabled: !!cql,
+    meta: { errorMessage: "Failed to Search Content" },
+  });
 
-  const { currentUser, error: currentUserError } = useConfluenceCurrentUser();
+  const { currentUser } = useConfluenceCurrentUser();
 
   const toggleFavorite = useToggleFavorite();
 
-  const handleToggleFavorite = (contentId: string, isFavorited: boolean) => {
-    toggleFavorite.mutate({ contentId, isFavorited });
-  };
-
-  useEffect(() => {
-    if (toggleFavorite.error) {
-      showFailureToast(toggleFavorite.error, { title: "Failed to Update Favorite" });
-    }
-  }, [toggleFavorite.error]);
-
   useAvatar({
-    items: data.items,
+    items: data.list,
     avatarType: AVATAR_TYPE.CONFLUENCE_USER,
     extractAvatarData: avatarExtractors.confluenceContentCreator,
   });
 
-  useEffect(() => {
-    if (currentUserError) {
-      showFailureToast(currentUserError, { title: "Failed to Load User" });
-    }
-  }, [currentUserError]);
+  const refetchWithToast = useRefetchWithToast({ refetch });
 
-  useEffect(() => {
-    if (error) {
-      showFailureToast(error, { title: "Failed to Search Content" });
-    }
-  }, [error]);
+  const fetchNextPageWithToast = useFetchNextPageWithToast({
+    hasNextPage,
+    isFetchingNextPage,
+    fetchNextPage,
+  });
 
-  const handleRefresh = async () => {
-    try {
-      await refetch();
-      showToast(Toast.Style.Success, "Refreshed");
-    } catch {
-      // Error handling is done by useEffect
-    }
-  };
+  const isEmpty = isSuccess && !data.list.length;
 
-  const handleLoadMore = () => {
-    if (data.hasMore && !isFetchingNextPage) {
-      fetchNextPage();
-    }
+  const sectionTitle = getSectionTitle(filterForQuery, {
+    fetchedCount: data.list.length,
+    totalCount: data?.total || 0,
+  });
+
+  const handleToggleFavorite = (contentId: string, isFavorited: boolean) => {
+    toggleFavorite.mutate({ contentId, isFavorited });
   };
 
   const copyCQL = () => {
@@ -142,106 +122,107 @@ function ConfluenceSearchContents() {
     copyToClipboardWithToast(replacedCQL);
   };
 
-  const isEmpty = isSuccess && !data.items.length;
-
-  const sectionTitle = getSectionTitle(filterForQuery, {
-    fetchedCount: data.items.length,
-    totalCount: data?.totalCount || 0,
-  });
-
   return (
     <List
       throttle
       isLoading={isLoading}
       onSearchTextChange={setSearchText}
-      searchBarPlaceholder="Search contents by title..."
+      searchBarPlaceholder="Search by title..."
       searchBarAccessory={
         <SearchBarAccessory
-          commandName={COMMAND_NAME.CONFLUENCE_SEARCH_CONTENT}
+          commandName={COMMAND_NAME.CONFLUENCE_SEARCH_CONTENTS}
           value={filter?.value || ""}
           onChange={setFilter}
         />
       }
       pagination={{
-        hasMore: data.hasMore,
-        onLoadMore: handleLoadMore,
+        hasMore: hasNextPage,
+        onLoadMore: fetchNextPageWithToast,
         pageSize: PAGINATION_SIZE,
       }}
     >
-      <QueryWrapper query={searchText} queryType={QUERY_TYPE.CQL}>
-        {isEmpty ? (
-          <List.EmptyView
-            icon={Icon.MagnifyingGlass}
-            title="No Results"
-            description="Try adjusting your search filters or check your CQL syntax"
-            actions={
-              <ActionPanel>
-                <Action.OpenInBrowser
-                  icon={Icon.Book}
-                  title="Open CQL Documentation"
-                  url="https://developer.atlassian.com/server/confluence/rest/v1010/intro/#advanced-searching-using-cql"
-                />
-                <Action.CopyToClipboard title="Copy CQL" content={cql} />
-              </ActionPanel>
-            }
-          />
-        ) : (
-          <List.Section title={sectionTitle}>
-            {data.items.map((item) => {
-              return (
-                <List.Item
-                  key={item.renderKey}
-                  icon={item.icon}
-                  title={item.title}
-                  subtitle={item.subtitle}
-                  accessories={item.accessories}
-                  actions={
-                    <ActionPanel>
-                      <Action.OpenInBrowser title="Open in Browser" url={item.url} />
-                      {item.canEdit && (
-                        <Action.OpenInBrowser
-                          icon={Icon.Pencil}
-                          title="Edit in Browser"
-                          url={item.editUrl}
-                          shortcut={{ modifiers: ["cmd"], key: "e" }}
-                        />
-                      )}
-                      <Action.CopyToClipboard
-                        title="Copy Link"
-                        content={item.url}
-                        shortcut={{ modifiers: ["cmd", "shift"], key: "c" }}
+      {isEmpty ? (
+        <NoContentsEmptyView cql={cql} />
+      ) : (
+        <List.Section title={sectionTitle}>
+          {data.list.map((item) => {
+            return (
+              <List.Item
+                key={item.renderKey}
+                icon={item.icon}
+                title={item.title}
+                subtitle={item.subtitle}
+                accessories={item.accessories}
+                actions={
+                  <ActionPanel>
+                    <Action.OpenInBrowser title="Open in Browser" url={item.url} />
+                    {item.canEdit && (
+                      <Action.OpenInBrowser
+                        icon={Icon.Pencil}
+                        title="Edit in Browser"
+                        url={item.editUrl}
+                        shortcut={{ modifiers: ["cmd"], key: "e" }}
                       />
-                      {item.canFavorite && (
-                        <Action
-                          icon={item.isFavourited ? Icon.StarDisabled : Icon.Star}
-                          title={item.isFavourited ? "Remove from Favourites" : "Add to Favourites"}
-                          onAction={() => handleToggleFavorite(item.id, item.isFavourited)}
-                          shortcut={{ modifiers: ["cmd"], key: "f" }}
-                        />
-                      )}
-                      {item.spaceUrl && (
-                        <Action.OpenInBrowser
-                          icon={Icon.House}
-                          title={`Open Space Homepage${item.spaceName ? ` (${item.spaceName})` : ""}`}
-                          url={item.spaceUrl}
-                        />
-                      )}
-                      {cql && <Action title="Copy CQL" icon={Icon.CopyClipboard} onAction={() => copyCQL()} />}
+                    )}
+                    <Action.CopyToClipboard
+                      title="Copy Link"
+                      content={item.url}
+                      shortcut={{ modifiers: ["cmd", "shift"], key: "c" }}
+                    />
+                    {item.canFavorite && (
                       <Action
-                        title="Refresh"
-                        icon={Icon.ArrowClockwise}
-                        shortcut={{ modifiers: ["cmd"], key: "r" }}
-                        onAction={handleRefresh}
+                        icon={item.isFavourited ? Icon.StarDisabled : Icon.Star}
+                        title={item.isFavourited ? "Remove from Favourites" : "Add to Favourites"}
+                        onAction={() => handleToggleFavorite(item.id, item.isFavourited)}
+                        shortcut={{ modifiers: ["cmd"], key: "f" }}
                       />
-                      <DebugActions />
-                    </ActionPanel>
-                  }
-                />
-              );
-            })}
-          </List.Section>
-        )}
-      </QueryWrapper>
+                    )}
+                    {item.spaceUrl && (
+                      <Action.OpenInBrowser
+                        icon={Icon.House}
+                        title={`Open Space Homepage${item.spaceName ? ` (${item.spaceName})` : ""}`}
+                        url={item.spaceUrl}
+                      />
+                    )}
+                    {cql && <Action title="Copy CQL" icon={Icon.CopyClipboard} onAction={() => copyCQL()} />}
+                    <Action
+                      title="Refresh"
+                      icon={Icon.ArrowClockwise}
+                      shortcut={{ modifiers: ["cmd"], key: "r" }}
+                      onAction={refetchWithToast}
+                    />
+                    <DebugActions />
+                  </ActionPanel>
+                }
+              />
+            );
+          })}
+        </List.Section>
+      )}
     </List>
+  );
+}
+
+interface NoContentsEmptyViewProps {
+  cql: string;
+}
+
+function NoContentsEmptyView({ cql }: NoContentsEmptyViewProps) {
+  return (
+    <List.EmptyView
+      icon={Icon.MagnifyingGlass}
+      title="No Results"
+      description="Try adjusting your search filters or check your CQL syntax"
+      actions={
+        <ActionPanel>
+          <Action.OpenInBrowser
+            icon={Icon.Book}
+            title="Open CQL Documentation"
+            url="https://developer.atlassian.com/server/confluence/rest/v1010/intro/#advanced-searching-using-cql"
+          />
+          <Action.CopyToClipboard title="Copy CQL" content={cql} />
+        </ActionPanel>
+      }
+    />
   );
 }

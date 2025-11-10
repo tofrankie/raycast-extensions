@@ -1,34 +1,46 @@
-import type { JiraUser, JiraTimeTracking, JiraStatus, JiraIssueType, JiraPriority, JiraEpic } from "@/types";
+import { JIRA_BOARD_TYPE } from "@/constants";
+import type {
+  JiraIssueUser,
+  JiraIssueTimeTracking,
+  JiraIssueStatus,
+  JiraIssueType,
+  JiraIssuePriority,
+  JiraEpic,
+  ValueOf,
+} from "@/types";
 
-export interface JiraBoardIssueFields {
+export type JiraBoardType = ValueOf<typeof JIRA_BOARD_TYPE>;
+
+export interface JiraKanbanBoardIssueFields {
   summary: string;
   issuetype: JiraIssueType;
   duedate: string | null;
   created: string;
-  reporter: JiraUser;
-  assignee: JiraUser;
-  priority: JiraPriority;
+  reporter: JiraIssueUser;
+  assignee: JiraIssueUser;
+  priority: JiraIssuePriority;
   updated: string | null;
-  timetracking?: JiraTimeTracking;
-  status: JiraStatus;
+  timetracking?: JiraIssueTimeTracking;
+  status: JiraIssueStatus;
   epic?: JiraEpic;
   [key: string]: unknown;
 }
 
-export interface JiraBoardIssue {
+export interface JiraKanbanBoardIssue {
   expand: string;
   id: string;
   self: string;
   key: string;
-  fields: JiraBoardIssueFields;
+  fields: JiraKanbanBoardIssueFields;
 }
 
-export interface JiraBoardIssueResponse {
+export interface JiraKanbanBoardIssueResponse {
   expand: string;
   startAt: number;
   maxResults: number;
   total: number;
-  issues: JiraBoardIssue[];
+  issues: JiraKanbanBoardIssue[];
+  names?: Record<string, string>;
 }
 
 export interface JiraBoard {

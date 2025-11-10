@@ -1,4 +1,4 @@
-import type { ListItemIcon, ListItemSubtitle, ListItemAccessories, ListItemTitle } from "@/types";
+import type { ListItemTitle, ListItemKeywords, ListItemAccessories, ListItemIcon, ListItemSubtitle } from "@/types";
 
 export interface ProcessedBase {
   renderKey: string;
@@ -10,11 +10,11 @@ export interface ProcessedConfluenceContent extends ProcessedBase {
   icon: ListItemIcon;
   subtitle: ListItemSubtitle;
   accessories: ListItemAccessories;
+  url: string;
+  editUrl: string;
   canEdit: boolean;
   canFavorite: boolean;
   isFavourited: boolean;
-  url: string;
-  editUrl: string;
   spaceUrl: string;
   spaceName: string;
   creatorAvatarUrl: string;
@@ -49,11 +49,11 @@ export interface ProcessedConfluenceSpace extends ProcessedBase {
 export interface ProcessedJiraField extends ProcessedBase {
   id: string;
   name: string;
-  subtitle: ListItemSubtitle;
-  accessories: ListItemAccessories;
   custom: boolean;
   isAdded: boolean;
-  keywords: string[];
+  subtitle: ListItemSubtitle;
+  accessories: ListItemAccessories;
+  keywords: ListItemKeywords;
   schema?: {
     type: string;
   };
@@ -66,22 +66,22 @@ export interface ProcessedJiraIssue extends ProcessedBase {
   subtitle: ListItemSubtitle;
   accessories: ListItemAccessories;
   url: string;
-  editUrl: string;
+  editUrl?: string;
 }
 
-export interface ProcessedJiraBoardIssue extends ProcessedBase {
+export interface ProcessedJiraKanbanBoardIssue extends ProcessedBase {
   key: string;
   summary: string;
   icon: ListItemIcon;
   subtitle: ListItemSubtitle;
   accessories: ListItemAccessories;
   url: string;
-  editUrl: string;
-  keywords: string[];
+  editUrl?: string;
+  keywords: ListItemKeywords;
 }
 
 export interface ProcessedWorklog extends ProcessedBase {
-  keywords: string[];
+  keywords: ListItemKeywords;
   subtitle: string;
   icon: string;
   accessories: ListItemAccessories;
@@ -94,11 +94,17 @@ export interface ProcessedWorklog extends ProcessedBase {
   worklogId: number;
 }
 
-export interface WorklogGroup {
-  date: string;
-  totalTimeSpent: string;
-  totalTimeSpentSeconds: number;
-  items: ProcessedWorklog[];
-  title: string;
-  subtitle: string;
+export interface ProcessedJiraNotification extends ProcessedBase {
+  notificationId: number;
+  issueKey: string;
+  content: string;
+  icon: ListItemIcon;
+  subtitle: ListItemSubtitle;
+  accessories: ListItemAccessories;
+  url: string;
+  state: 0 | 1;
+  actionTime: number;
+  actionMakerAvatarUrl: string;
+  actionMakerAvatarCacheKey?: string;
+  keywords: ListItemKeywords;
 }

@@ -1,27 +1,29 @@
 import { useState, useEffect, useMemo } from "react";
-import { List, ActionPanel, Action, Icon, showToast, Toast } from "@raycast/api";
-import { showFailureToast } from "@raycast/utils";
+import { List, ActionPanel, Action, Icon } from "@raycast/api";
 
-import { QueryProvider, DebugActions } from "@/components";
-import { useJiraFieldQuery } from "@/hooks";
+import { withQuery, DebugActions } from "@/components";
+import { useJiraFieldQuery, useRefetchWithToast } from "@/hooks";
 import { getSelectedFields, addSelectedField, removeSelectedField } from "@/utils";
 import type { JiraField, ProcessedJiraField } from "@/types";
 
 const EMPTY_FIELDS: ProcessedJiraField[] = [];
 
-export default function JiraManageFieldsProvider() {
-  return (
-    <QueryProvider>
-      <JiraManageFields />
-    </QueryProvider>
-  );
-}
+export default withQuery(JiraManageFields);
 
 function JiraManageFields() {
   const [searchText, setSearchText] = useState("");
   const [addedFields, setAddedFields] = useState<JiraField[]>([]);
 
-  const { data = EMPTY_FIELDS, isLoading, isSuccess, error, refetch } = useJiraFieldQuery();
+  const {
+    data = EMPTY_FIELDS,
+    isLoading,
+    isSuccess,
+    refetch,
+  } = useJiraFieldQuery({
+    meta: { errorMessage: "Failed to Load Fields" },
+  });
+
+  const refetchWithToast = useRefetchWithToast({ refetch });
 
   useEffect(() => {
     setAddedFields(getSelectedFields());
@@ -51,6 +53,16 @@ function JiraManageFields() {
     };
   }, [data, searchText, addedFields]);
 
+  const noFieldsAvailable = isSuccess && !data.length;
+
+  const noFilteredResults =
+    isSuccess &&
+    data.length &&
+    searchText.length > 0 &&
+    !addedFieldsFiltered.length &&
+    !systemFields.length &&
+    !customFields.length;
+
   const handleToggleField = (field: ProcessedJiraField) => {
     const isAdded = addedFields.some((item) => item.id === field.id);
 
@@ -73,45 +85,12 @@ function JiraManageFields() {
     }
   };
 
-  const isFieldAdded = useMemo(() => {
-    return (field: ProcessedJiraField) => addedFields.some((item) => item.id === field.id);
-  }, [addedFields]);
-
-  const isUserField = useMemo(() => {
-    return (field: ProcessedJiraField) => field.schema?.type === "user";
-  }, []);
-
-  const noFieldsAvailable = isSuccess && !data.length;
-
-  const noFilteredResults =
-    isSuccess &&
-    data.length &&
-    searchText.length > 0 &&
-    !addedFieldsFiltered.length &&
-    !systemFields.length &&
-    !customFields.length;
-
-  useEffect(() => {
-    if (error) {
-      showFailureToast(error, { title: "Failed to Load Fields" });
-    }
-  }, [error]);
-
-  const handleRefresh = async () => {
-    try {
-      await refetch();
-      showToast(Toast.Style.Success, "Refreshed");
-    } catch {
-      // Error handling is done by useEffect
-    }
-  };
-
   return (
     <List
       throttle
       isLoading={isLoading}
       onSearchTextChange={setSearchText}
-      searchBarPlaceholder="Filter fields by name, id, type..."
+      searchBarPlaceholder="Filter by name, id, type..."
     >
       {noFieldsAvailable || noFilteredResults ? (
         <List.EmptyView
@@ -132,6 +111,8 @@ function JiraManageFields() {
                   ...(item.accessories ?? []),
                 ];
 
+                const isUserFieldItem = item.schema?.type === "user";
+
                 return (
                   <List.Item
                     key={item.renderKey}
@@ -141,7 +122,7 @@ function JiraManageFields() {
                     keywords={item.keywords}
                     actions={
                       <ActionPanel>
-                        {isUserField(item) && (
+                        {isUserFieldItem && (
                           <Action
                             title="Remove from Search"
                             icon={Icon.Minus}
@@ -153,7 +134,7 @@ function JiraManageFields() {
                           title="Refresh"
                           icon={Icon.ArrowClockwise}
                           shortcut={{ modifiers: ["cmd"], key: "r" }}
-                          onAction={handleRefresh}
+                          onAction={refetchWithToast}
                         />
                         <DebugActions />
                       </ActionPanel>
@@ -168,7 +149,8 @@ function JiraManageFields() {
             <List.Section title={`Custom Fields (${customFields.length})`}>
               {customFields.map((item) => {
                 const accessories = item.accessories;
-                const isAdded = isFieldAdded(item);
+                const isAdded = addedFields.some((i) => i.id === item.id);
+                const isUserFieldItem = item.schema?.type === "user";
                 const updatedAccessories = isAdded
                   ? [
                       {
@@ -188,7 +170,7 @@ function JiraManageFields() {
                     keywords={item.keywords}
                     actions={
                       <ActionPanel>
-                        {isUserField(item) && (
+                        {isUserFieldItem && (
                           <Action
                             title={isAdded ? "Remove from Search" : "Add to Search"}
                             icon={isAdded ? Icon.Minus : Icon.Plus}
@@ -200,7 +182,7 @@ function JiraManageFields() {
                           title="Refresh"
                           icon={Icon.ArrowClockwise}
                           shortcut={{ modifiers: ["cmd"], key: "r" }}
-                          onAction={handleRefresh}
+                          onAction={refetchWithToast}
                         />
                         <DebugActions />
                       </ActionPanel>

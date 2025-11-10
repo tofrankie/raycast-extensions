@@ -1,13 +1,14 @@
-import { useState, useMemo, useEffect } from "react";
-import { List, ActionPanel, Action, Icon, showToast, Toast } from "@raycast/api";
-import { showFailureToast } from "@raycast/utils";
+import { useState, useMemo } from "react";
+import { List, ActionPanel, Action, Icon } from "@raycast/api";
 
-import { QueryProvider, DebugActions } from "@/components";
+import { withQuery, DebugActions } from "@/components";
 import { JiraWorklogForm } from "@/pages";
 import { copyToClipboardWithToast } from "@/utils";
 import { JIRA_WORKLOG_RANGE } from "@/constants";
-import { useJiraWorklogsQuery, useJiraCurrentUser } from "@/hooks";
+import { useJiraWorklogsQuery, useJiraCurrentUser, useRefetchWithToast } from "@/hooks";
 import { getDateRange } from "@/utils";
+
+export default withQuery(JiraWorklogView);
 
 interface WorklogFilter {
   value: string;
@@ -21,49 +22,29 @@ const timeRanges: WorklogFilter[] = [
   { value: JIRA_WORKLOG_RANGE.MONTHLY, title: "This Month", icon: Icon.Calendar },
 ];
 
-export default function JiraWorklogViewProvider() {
-  return (
-    <QueryProvider>
-      <JiraWorklogView />
-    </QueryProvider>
-  );
-}
-
 function JiraWorklogView() {
   const [selectedRangeType, setSelectedRangeType] = useState<string>("");
 
-  const { currentUser, error: currentUserError } = useJiraCurrentUser();
+  const { currentUser } = useJiraCurrentUser();
 
   const { from, to } = useMemo(() => getDateRange(selectedRangeType || JIRA_WORKLOG_RANGE.WEEKLY), [selectedRangeType]);
 
   const {
     data: worklogGroups = [],
-    error,
     isLoading,
     isSuccess,
     refetch,
-  } = useJiraWorklogsQuery({ userKey: currentUser?.key, from, to });
+  } = useJiraWorklogsQuery(
+    { userKey: currentUser?.key, from, to },
+    {
+      enabled: !!currentUser?.key,
+      meta: { errorMessage: "Failed to Load Worklog" },
+    },
+  );
 
-  useEffect(() => {
-    if (currentUserError) {
-      showFailureToast(currentUserError, { title: "Failed to Load User" });
-    }
-  }, [currentUserError]);
+  const refetchWithToast = useRefetchWithToast({ refetch });
 
-  useEffect(() => {
-    if (error) {
-      showFailureToast(error, { title: "Failed to Load Worklog" });
-    }
-  }, [error]);
-
-  const handleRefresh = async () => {
-    try {
-      await refetch();
-      showToast(Toast.Style.Success, "Refreshed");
-    } catch {
-      // Error handling is done by useEffect
-    }
-  };
+  const isEmpty = isSuccess && worklogGroups.length === 0;
 
   const copyJQL = async () => {
     const issueKeys = [...new Set(worklogGroups.flatMap((group) => group.items.map((item) => item.issueKey)))];
@@ -77,12 +58,10 @@ function JiraWorklogView() {
     await copyToClipboardWithToast(jql);
   };
 
-  const isEmpty = isSuccess && worklogGroups.length === 0;
-
   return (
     <List
       throttle
-      searchBarPlaceholder="Filter worklogs by summary, key, date..."
+      searchBarPlaceholder="Filter by summary, key, date..."
       isLoading={isLoading}
       searchBarAccessory={
         <List.Dropdown tooltip="Select Time Range" value={selectedRangeType} onChange={setSelectedRangeType} storeValue>
@@ -93,16 +72,7 @@ function JiraWorklogView() {
       }
     >
       {isEmpty ? (
-        <List.EmptyView
-          icon={Icon.MagnifyingGlass}
-          title="No Results"
-          description="No worklogs found for selected time range"
-          actions={
-            <ActionPanel>
-              <Action title="Refresh" icon={Icon.ArrowClockwise} onAction={handleRefresh} />
-            </ActionPanel>
-          }
-        />
+        <NoWorklogsEmptyView onRefetch={refetchWithToast} />
       ) : (
         worklogGroups.map((group) => (
           <List.Section key={group.date} title={group.title} subtitle={group.subtitle}>
@@ -119,14 +89,18 @@ function JiraWorklogView() {
                     <Action.OpenInBrowser title="Open in Browser" url={item.url} />
                     <Action.Push
                       title="Create Worklog"
-                      target={<JiraWorklogForm issueKey={item.issueKey} onUpdate={handleRefresh} />}
+                      target={<JiraWorklogForm issueKey={item.issueKey} onUpdate={refetchWithToast} />}
                       icon={Icon.Plus}
                       shortcut={{ modifiers: ["cmd", "shift"], key: "n" }}
                     />
                     <Action.Push
                       title="Edit Worklog"
                       target={
-                        <JiraWorklogForm issueKey={item.issueKey} worklogId={item.worklogId} onUpdate={handleRefresh} />
+                        <JiraWorklogForm
+                          issueKey={item.issueKey}
+                          worklogId={item.worklogId}
+                          onUpdate={refetchWithToast}
+                        />
                       }
                       icon={Icon.Pencil}
                       shortcut={{ modifiers: ["cmd", "shift"], key: "e" }}
@@ -141,7 +115,7 @@ function JiraWorklogView() {
                       title="Refresh"
                       icon={Icon.ArrowClockwise}
                       shortcut={{ modifiers: ["cmd"], key: "r" }}
-                      onAction={handleRefresh}
+                      onAction={refetchWithToast}
                     />
                     <DebugActions />
                   </ActionPanel>
@@ -152,5 +126,24 @@ function JiraWorklogView() {
         ))
       )}
     </List>
+  );
+}
+
+interface NoWorklogsEmptyViewProps {
+  onRefetch: () => void;
+}
+
+function NoWorklogsEmptyView({ onRefetch }: NoWorklogsEmptyViewProps) {
+  return (
+    <List.EmptyView
+      icon={Icon.MagnifyingGlass}
+      title="No Results"
+      description="No worklogs found for selected time range"
+      actions={
+        <ActionPanel>
+          <Action title="Refresh" icon={Icon.ArrowClockwise} onAction={onRefetch} />
+        </ActionPanel>
+      }
+    />
   );
 }

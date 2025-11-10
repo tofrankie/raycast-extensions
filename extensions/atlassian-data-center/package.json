@@ -184,6 +184,14 @@
       "icon": "logo-jira.png"
     },
     {
+      "name": "jira-notification-view",
+      "title": "Notification View",
+      "subtitle": "Jira Data Center",
+      "description": "View Jira notifications",
+      "mode": "view",
+      "icon": "logo-jira.png"
+    },
+    {
       "name": "jira-manage-fields",
       "title": "Manage Fields",
       "subtitle": "Jira Data Center",

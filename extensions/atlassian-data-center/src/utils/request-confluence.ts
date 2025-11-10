@@ -1,26 +1,26 @@
 import { confluenceRequest, handleApiResponse, transformURL } from "@/utils";
-import { CONFLUENCE_API, COMMAND_NAME, PAGINATION_SIZE } from "@/constants";
-import type { ConfluenceSearchContentResponse, ConfluenceSearchResponse, ConfluenceCurrentUser } from "@/types";
+import { CONFLUENCE_API, COMMAND_NAME } from "@/constants";
+import type { ConfluenceSearchContentsResponse, ConfluenceSearchResponse, ConfluenceCurrentUser } from "@/types";
 
 type SearchContentParams = {
   cql: string;
-  limit?: number;
-  start?: number;
+  limit: number;
+  offset: number;
 };
 
-export async function searchContent({
+export async function searchContents({
   cql,
-  limit = PAGINATION_SIZE,
-  start = 0,
-}: SearchContentParams): Promise<ConfluenceSearchContentResponse> {
+  limit,
+  offset,
+}: SearchContentParams): Promise<ConfluenceSearchContentsResponse> {
   const params = {
     cql,
-    start,
+    start: offset,
     limit,
     expand: "space,history.createdBy,history.lastUpdated,metadata.currentuser.favourited",
   };
 
-  const data = await confluenceRequest<ConfluenceSearchContentResponse>({
+  const data = await confluenceRequest<ConfluenceSearchContentsResponse>({
     method: "GET",
     url: CONFLUENCE_API.SEARCH_CONTENT,
     params,
@@ -28,7 +28,7 @@ export async function searchContent({
 
   return handleApiResponse({
     data,
-    fileName: COMMAND_NAME.CONFLUENCE_SEARCH_CONTENT,
+    fileName: COMMAND_NAME.CONFLUENCE_SEARCH_CONTENTS,
     defaultValue: {
       results: [],
       start: 0,
@@ -66,18 +66,14 @@ export async function removeFromFavorite({ contentId }: RemoveFromFavoriteParams
 
 type SearchUserParams = {
   cql: string;
-  limit?: number;
-  start?: number;
+  limit: number;
+  offset: number;
 };
 
-export async function searchUser({
-  cql,
-  limit = PAGINATION_SIZE,
-  start = 0,
-}: SearchUserParams): Promise<ConfluenceSearchResponse> {
+export async function searchUsers({ cql, limit, offset }: SearchUserParams): Promise<ConfluenceSearchResponse> {
   const params = {
     cql,
-    start,
+    start: offset,
     limit,
     expand: "user,user.status",
   };
@@ -90,7 +86,7 @@ export async function searchUser({
 
   return handleApiResponse({
     data,
-    fileName: COMMAND_NAME.CONFLUENCE_SEARCH_USER,
+    fileName: COMMAND_NAME.CONFLUENCE_SEARCH_USERS,
     defaultValue: {
       results: [],
       start: 0,
@@ -110,18 +106,14 @@ export async function searchUser({
 
 type SearchSpaceParams = {
   cql: string;
-  limit?: number;
-  start?: number;
+  limit: number;
+  offset: number;
 };
 
-export async function searchSpace({
-  cql,
-  limit = PAGINATION_SIZE,
-  start = 0,
-}: SearchSpaceParams): Promise<ConfluenceSearchResponse> {
+export async function searchSpaces({ cql, limit, offset }: SearchSpaceParams): Promise<ConfluenceSearchResponse> {
   const params = {
     cql,
-    start,
+    start: offset,
     limit,
     expand: "space,space.description.plain,space.icon,space.metadata.labels",
   };
@@ -134,7 +126,7 @@ export async function searchSpace({
 
   return handleApiResponse({
     data,
-    fileName: COMMAND_NAME.CONFLUENCE_SEARCH_SPACE,
+    fileName: COMMAND_NAME.CONFLUENCE_SEARCH_SPACES,
     defaultValue: {
       results: [],
       start: 0,

@@ -1,20 +1,25 @@
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
-import type { UseQueryOptions, UseMutationOptions } from "@tanstack/react-query";
+import type { UseMutationOptions } from "@tanstack/react-query";
 
-import { getJiraWorklogById, createJiraWorklog, updateJiraWorklog } from "@/utils";
-import type { JiraWorklog, JiraWorklogCreateParams, JiraWorklogUpdateParams } from "@/types";
+import { getJiraWorklogById, createJiraWorklog, updateJiraWorklog, getJiraWorklogs, processJiraWorklog } from "@/utils";
+import type {
+  JiraWorklog,
+  JiraWorklogCreateParams,
+  JiraWorklogUpdateParams,
+  WorklogGroup,
+  QueryOptions,
+} from "@/types";
 
-export function useJiraWorklogQuery<TData = JiraWorklog>(
+export function useJiraWorklogQuery<TSelect = JiraWorklog>(
   worklogId: number,
-  queryOptions?: Partial<UseQueryOptions<JiraWorklog, Error, TData>>,
+  options?: QueryOptions<JiraWorklog, TSelect>,
 ) {
-  return useQuery<JiraWorklog, Error, TData>({
+  return useQuery<JiraWorklog, Error, TSelect>({
     queryKey: ["jira-worklog", worklogId],
     queryFn: () => getJiraWorklogById(worklogId),
-    enabled: !!worklogId,
     staleTime: 0,
-    gcTime: 20 * 1000,
-    ...queryOptions,
+    gcTime: 30 * 1000,
+    ...options,
   });
 }
 
@@ -47,5 +52,22 @@ export function useJiraWorklogUpdateMutation(
       queryClient.invalidateQueries({ queryKey: ["jira-search-issue"] });
     },
     ...mutationOptions,
+  });
+}
+
+export function useJiraWorklogsQuery<TSelect = WorklogGroup[]>(
+  { userKey, from, to }: { userKey: string | undefined; from: string; to: string },
+  options?: QueryOptions<JiraWorklog[], TSelect>,
+) {
+  return useQuery<JiraWorklog[], Error, TSelect>({
+    queryKey: ["jira-worklog-view", { userKey, from, to }],
+    queryFn: async () => {
+      if (!userKey) return [];
+      return await getJiraWorklogs({ from, to, worker: [userKey] });
+    },
+    select: (data) => processJiraWorklog(data) as TSelect,
+    staleTime: Infinity,
+    gcTime: Infinity,
+    ...options,
   });
 }

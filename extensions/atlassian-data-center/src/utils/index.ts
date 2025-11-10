@@ -16,5 +16,6 @@ export * from "./process-jira-search-issues";
 export * from "./process-jira-manage-fields";
 export * from "./process-jira-worklog-view";
 export * from "./process-jira-board-view";
+export * from "./process-jira-notification-view";
 export * from "./section-title";
 export * from "./query";

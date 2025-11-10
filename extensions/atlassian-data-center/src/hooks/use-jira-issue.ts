@@ -1,41 +1,99 @@
-import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
-import type { UseQueryOptions, UseMutationOptions } from "@tanstack/react-query";
+import { useQuery, useMutation, useQueryClient, useInfiniteQuery } from "@tanstack/react-query";
+import type { UseMutationOptions, QueryKey } from "@tanstack/react-query";
 
-import { JIRA_API } from "@/constants";
-import { getJiraIssue, getJiraIssueTransitions, transitionJiraIssue, transformURL } from "@/utils";
-import type { JiraSearchIssue, JiraTransitionResponse } from "@/types";
+import { JIRA_API, PAGINATION_SIZE, JIRA_SEARCH_ISSUE_FIELDS } from "@/constants";
+import {
+  getJiraIssue,
+  getJiraIssueTransitions,
+  transitionJiraIssue,
+  transformURL,
+  searchJiraIssues,
+  processJiraSearchIssue,
+  getSelectedFields,
+  getSelectedFieldIds,
+} from "@/utils";
+import type {
+  JiraSearchIssue,
+  JiraTransitionResponse,
+  JiraSearchIssuesResponse,
+  ProcessedJiraIssue,
+  QueryOptions,
+  InfiniteQueryOptions,
+  InfiniteQueryPageParam,
+} from "@/types";
 
-export function useJiraIssueQuery<TData = JiraSearchIssue>(
+export function useJiraIssueQuery<TSelect = JiraSearchIssue>(
   issueKey: string,
-  queryOptions?: Partial<UseQueryOptions<JiraSearchIssue, Error, TData>>,
+  options?: QueryOptions<JiraSearchIssue, TSelect>,
 ) {
-  return useQuery<JiraSearchIssue, Error, TData>({
+  return useQuery<JiraSearchIssue, Error, TSelect>({
     queryKey: ["jira-issue", issueKey],
     queryFn: () => {
       const url = transformURL(JIRA_API.ISSUE, { issueIdOrKey: issueKey });
       return getJiraIssue(url);
     },
-    enabled: !!issueKey,
     staleTime: 0,
-    gcTime: 20 * 1000,
-    ...queryOptions,
+    gcTime: 30 * 1000,
+    ...options,
   });
 }
 
-export function useJiraIssueTransitionsQuery<TData = JiraTransitionResponse>(
-  issueKey: string,
-  queryOptions?: Partial<UseQueryOptions<JiraTransitionResponse, Error, TData>>,
+export function useJiraSearchIssuesInfiniteQuery<TSelect = { list: ProcessedJiraIssue[]; total: number }>(
+  jql: string,
+  options?: InfiniteQueryOptions<JiraSearchIssuesResponse, TSelect>,
 ) {
-  return useQuery<JiraTransitionResponse, Error, TData>({
+  return useInfiniteQuery<JiraSearchIssuesResponse, Error, TSelect, QueryKey, InfiniteQueryPageParam>({
+    queryKey: ["jira-search-issues", { jql, pageSize: PAGINATION_SIZE }],
+    queryFn: async ({ pageParam }) => {
+      const { offset, limit } = pageParam;
+      const selectedFieldIds = getSelectedFieldIds();
+
+      return await searchJiraIssues({
+        jql,
+        offset,
+        limit,
+        validateQuery: false,
+        fields: [...JIRA_SEARCH_ISSUE_FIELDS, ...selectedFieldIds],
+        expand: ["names"],
+      });
+    },
+    select: (data) => {
+      const allIssue = data.pages.flatMap((page) => page.issues);
+      const fieldsNameMap = data.pages[0]?.names;
+      const selectedFields = getSelectedFields();
+      const processedIssues: ProcessedJiraIssue[] = allIssue.map((issue) =>
+        processJiraSearchIssue(issue, selectedFields, fieldsNameMap),
+      );
+
+      return {
+        list: processedIssues,
+        total: data.pages[0]?.total ?? 0,
+      } as TSelect;
+    },
+    initialPageParam: { offset: 0, limit: PAGINATION_SIZE },
+    getNextPageParam: (lastPage) => {
+      if (lastPage.startAt + lastPage.issues.length < lastPage.total) {
+        return { offset: lastPage.startAt + lastPage.issues.length, limit: PAGINATION_SIZE };
+      }
+      return undefined;
+    },
+    ...options,
+  });
+}
+
+export function useJiraIssueTransitionsQuery<TSelect = JiraTransitionResponse>(
+  issueKey: string,
+  options?: QueryOptions<JiraTransitionResponse, TSelect>,
+) {
+  return useQuery<JiraTransitionResponse, Error, TSelect>({
     queryKey: ["jira-issue-transitions", issueKey],
     queryFn: () => {
       const url = transformURL(JIRA_API.ISSUE_TRANSITIONS, { issueIdOrKey: issueKey });
       return getJiraIssueTransitions(url);
     },
-    enabled: !!issueKey,
     staleTime: 0,
-    gcTime: 20 * 1000,
-    ...queryOptions,
+    gcTime: 30 * 1000,
+    ...options,
   });
 }
 

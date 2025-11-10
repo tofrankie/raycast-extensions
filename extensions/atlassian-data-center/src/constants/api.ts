@@ -10,14 +10,21 @@ export const JIRA_API = {
   FIELD: "/rest/api/2/field",
   PROJECT: "/rest/api/2/project",
   CURRENT_USER: "/rest/api/2/myself",
-  WORKLOG: "/rest/tempo-timesheets/4/worklogs",
-  WORKLOG_SEARCH: "/rest/tempo-timesheets/4/worklogs/search",
   ISSUE: "/rest/api/2/issue/{issueIdOrKey}",
   ISSUE_TRANSITIONS: "/rest/api/2/issue/{issueIdOrKey}/transitions",
   BOARD: "/rest/agile/1.0/board",
+  BOARD_ISSUE: "/rest/agile/1.0/board/{boardId}/issue",
   BOARD_SPRINT: "/rest/agile/1.0/board/{boardId}/sprint",
   BOARD_SPRINT_ISSUE: "/rest/agile/1.0/board/{boardId}/sprint/{sprintId}/issue",
   BOARD_CONFIGURATION: "/rest/agile/1.0/board/{boardId}/configuration",
+  // Tempo Timesheets
+  WORKLOG: "/rest/tempo-timesheets/4/worklogs",
+  WORKLOG_SEARCH: "/rest/tempo-timesheets/4/worklogs/search",
+  // Notifications for Jira
+  NFJ_NOTIFICATION: "/plugins/servlet/nfj/Notification",
+  NFJ_NOTIFICATIONS_COUNTER: "/plugins/servlet/nfj/NotificationsCounter",
+  NFJ_MARK_NOTIFICATIONS_AS_READ: "/plugins/servlet/nfj/MarkNotificationsAsRead",
+  NFJ_NOTIFICATION_STATE: "/plugins/servlet/nfj/NotificationState",
 } as const;
 
 export const JIRA_SEARCH_ISSUE_FIELDS = [

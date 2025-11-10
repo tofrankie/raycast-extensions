@@ -3,7 +3,7 @@ import { useEffect, useMemo } from "react";
 import { Form, ActionPanel, Action, Icon, showToast, Toast, useNavigation } from "@raycast/api";
 import { showFailureToast, useForm, FormValidation } from "@raycast/utils";
 
-import { QueryProvider } from "@/components";
+import { withQuery } from "@/components";
 import { formatSecondsToWorkedTime, normalizeWorkedTime, formatWorkedTimeToSeconds } from "@/utils";
 import {
   useJiraCurrentUser,
@@ -14,34 +14,30 @@ import {
 } from "@/hooks";
 import type { JiraWorklogFormData, JiraWorklogCreateParams, JiraWorklogUpdateParams } from "@/types";
 
+// Validate time format (e.g. "30m", "1h", "1h 30m", "1")
+const TIME_REGEX = /^(\d+(?:\.\d+)?)\s*[hm]?(\s+(\d+(?:\.\d+)?)\s*[hm])?$/i;
+
+export default withQuery(JiraWorklogForm);
+
 interface JiraWorklogProps {
   issueKey: string;
   worklogId?: number;
   onUpdate?: () => void;
 }
 
-// Validate time format (e.g. "30m", "1h", "1h 30m", "1")
-const TIME_REGEX = /^(\d+(?:\.\d+)?)\s*[hm]?(\s+(\d+(?:\.\d+)?)\s*[hm])?$/i;
-
-export default function JiraWorklogFormProvider(props: JiraWorklogProps) {
-  return (
-    <QueryProvider>
-      <JiraWorklogForm {...props} />
-    </QueryProvider>
-  );
-}
-
 function JiraWorklogForm({ issueKey, worklogId, onUpdate }: JiraWorklogProps) {
   const { pop } = useNavigation();
   const { currentUser } = useJiraCurrentUser();
 
-  const { data: issue, isLoading: isIssueLoading, error: issueError } = useJiraIssueQuery(issueKey);
+  const { data: issue, isLoading: issueLoading } = useJiraIssueQuery(issueKey, {
+    enabled: !!issueKey,
+    meta: { errorMessage: "Failed to Load Issue" },
+  });
 
-  const {
-    data: worklog,
-    isLoading: isWorklogLoading,
-    error: worklogError,
-  } = useJiraWorklogQuery(worklogId || 0, { enabled: !!worklogId });
+  const { data: worklog, isLoading: worklogLoading } = useJiraWorklogQuery(worklogId || 0, {
+    enabled: !!worklogId,
+    meta: { errorMessage: "Failed to Load Worklog" },
+  });
 
   const { handleSubmit, itemProps, setValue } = useForm<JiraWorklogFormData>({
     validation: {
@@ -102,25 +98,30 @@ function JiraWorklogForm({ issueKey, worklogId, onUpdate }: JiraWorklogProps) {
   });
 
   useEffect(() => {
+    // Edit worklog
     if (worklogId && worklog) {
       setValue("date", new Date(worklog.started));
       setValue("timeSpent", formatSecondsToWorkedTime(worklog.timeSpentSeconds));
       setValue("comment", worklog.comment);
-      // TODO:
       setValue(
         "remainingEstimate",
-        worklog.issue.epicIssue?.estimatedRemainingSeconds
-          ? Math.floor(worklog.issue.epicIssue.estimatedRemainingSeconds / 3600).toString()
+        worklog.issue.estimatedRemainingSeconds
+          ? formatSecondsToWorkedTime(worklog.issue.estimatedRemainingSeconds)
           : "",
       );
     }
   }, [worklog]);
 
   useEffect(() => {
-    // TODO: 3w、4d
+    // Create worklog
     if (issue && !worklogId) {
       setValue("date", new Date());
-      setValue("remainingEstimate", issue.fields.timetracking?.remainingEstimate || "");
+      setValue(
+        "remainingEstimate",
+        issue.fields.timetracking?.remainingEstimateSeconds
+          ? formatSecondsToWorkedTime(issue.fields.timetracking.remainingEstimateSeconds)
+          : "",
+      );
     }
   }, [issue, worklogId]);
 
@@ -160,17 +161,21 @@ function JiraWorklogForm({ issueKey, worklogId, onUpdate }: JiraWorklogProps) {
     pop();
   };
 
-  useEffect(() => {
-    if (issueError) {
-      showFailureToast(issueError, { title: "Failed to Load Issue" });
+  const originalRemainingEstimateSeconds = useMemo(() => {
+    // Edit
+    if (worklogId && worklog) {
+      const estimatedRemaining = worklog.issue.estimatedRemainingSeconds ?? 0;
+      const timeSpent = worklog.timeSpentSeconds;
+      return estimatedRemaining + timeSpent;
     }
-  }, [issueError]);
 
-  useEffect(() => {
-    if (worklogError) {
-      showFailureToast(worklogError, { title: "Failed to Load Worklog" });
+    // Create
+    if (!worklogId && issue) {
+      return issue.fields.timetracking?.remainingEstimateSeconds ?? undefined;
     }
-  }, [worklogError]);
+
+    return undefined;
+  }, [worklogId, worklog, issue]);
 
   const displayValues = useMemo(() => {
     if (!issue) {
@@ -189,7 +194,7 @@ function JiraWorklogForm({ issueKey, worklogId, onUpdate }: JiraWorklogProps) {
     };
   }, [issue, currentUser]);
 
-  const isLoading = isIssueLoading || isWorklogLoading || createMutation.isPending || updateMutation.isPending;
+  const isLoading = issueLoading || worklogLoading || createMutation.isPending || updateMutation.isPending;
   const navigationTitle = worklogId ? "Edit Worklog" : "Create Worklog";
   const canSubmit = issue && (!worklogId || (worklogId && worklog));
 
@@ -207,7 +212,7 @@ function JiraWorklogForm({ issueKey, worklogId, onUpdate }: JiraWorklogProps) {
       <Form.Description title="Issue Key" text={displayValues.issueKey} />
       <Form.Description title="Summary" text={displayValues.summary} />
       <Form.Description title="Assignee" text={displayValues.assignee} />
-      {/* The amount of time you originally believe is required to resolve the issue. */}
+      {/* The original estimate of how much work is involved in resolving this issue. */}
       {displayValues.originalEstimate && (
         <Form.Description title="Original Estimate" text={displayValues.originalEstimate} />
       )}
@@ -222,7 +227,17 @@ function JiraWorklogForm({ issueKey, worklogId, onUpdate }: JiraWorklogProps) {
           const value = event.target.value;
           if (!value) return;
           const formattedTime = normalizeWorkedTime(value);
-          if (formattedTime !== value) setValue("timeSpent", formattedTime);
+          if (formattedTime !== value) {
+            setValue("timeSpent", formattedTime);
+          }
+
+          // Auto-calculate remaining estimate if it has a value and original remaining estimate exists
+          const workedSeconds = formatWorkedTimeToSeconds(formattedTime);
+          if (originalRemainingEstimateSeconds !== undefined && workedSeconds > 0) {
+            const newRemainingSeconds = Math.max(0, originalRemainingEstimateSeconds - workedSeconds);
+            const newRemainingEstimate = formatSecondsToWorkedTime(newRemainingSeconds);
+            setValue("remainingEstimate", newRemainingEstimate);
+          }
         }}
       />
       <Form.TextArea

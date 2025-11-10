@@ -1,9 +1,9 @@
 import { jiraRequest, handleApiResponse } from "@/utils";
 import { JIRA_API, COMMAND_NAME } from "@/constants";
 import type {
-  JiraSearchIssueResponse,
+  JiraSearchIssuesResponse,
   JiraField,
-  JiraProject,
+  JiraIssueProject,
   JiraCurrentUser,
   JiraWorklog,
   JiraSearchIssue,
@@ -11,32 +11,48 @@ import type {
   JiraBoardResponse,
   JiraSprintResponse,
   JiraBoardConfiguration,
-  JiraBoardIssueResponse,
+  JiraKanbanBoardIssueResponse,
   JiraWorklogCreateParams,
   JiraWorklogUpdateParams,
+  JiraNotificationsResponse,
 } from "@/types";
 
 type JiraSearchIssueParams = {
+  offset: number;
+  limit: number;
   jql: string;
-  startAt?: number;
-  maxResults?: number;
-  fields?: string[];
-  expand?: string[];
   validateQuery?: boolean;
+  expand?: string[];
+  fields?: string[];
 };
 
-export async function searchJiraIssue(params: JiraSearchIssueParams): Promise<JiraSearchIssueResponse> {
-  const data = await jiraRequest<JiraSearchIssueResponse>({ method: "GET", url: JIRA_API.SEARCH, params });
+export async function searchJiraIssues({
+  offset,
+  limit,
+  jql,
+  validateQuery,
+  expand,
+  fields,
+}: JiraSearchIssueParams): Promise<JiraSearchIssuesResponse> {
+  const params = {
+    jql,
+    startAt: offset,
+    maxResults: limit,
+    fields,
+    expand,
+    validateQuery,
+  };
+  const data = await jiraRequest<JiraSearchIssuesResponse>({ method: "GET", url: JIRA_API.SEARCH, params });
 
   return handleApiResponse({
     data,
-    fileName: COMMAND_NAME.JIRA_SEARCH_ISSUE,
+    fileName: COMMAND_NAME.JIRA_SEARCH_ISSUES,
     defaultValue: {
       expand: "schema,names",
       startAt: 0,
       maxResults: 20,
       total: 0,
-      issues: [] as JiraSearchIssueResponse["issues"],
+      issues: [] as JiraSearchIssuesResponse["issues"],
       names: {},
     },
   });
@@ -47,13 +63,13 @@ export async function getJiraField(): Promise<JiraField[]> {
 
   return handleApiResponse({
     data,
-    fileName: COMMAND_NAME.JIRA_MANAGE_FIELD,
+    fileName: COMMAND_NAME.JIRA_MANAGE_FIELDS,
     defaultValue: [],
   });
 }
 
-export async function getJiraProject(): Promise<JiraProject[]> {
-  const data = await jiraRequest<JiraProject[]>({ method: "GET", url: JIRA_API.PROJECT });
+export async function getJiraProject(): Promise<JiraIssueProject[]> {
+  const data = await jiraRequest<JiraIssueProject[]>({ method: "GET", url: JIRA_API.PROJECT });
 
   return handleApiResponse({
     data,
@@ -128,7 +144,11 @@ export async function transitionJiraIssue(url: string, params: JiraIssueTransiti
 }
 
 export async function getJiraBoards(): Promise<JiraBoardResponse> {
-  const data = await jiraRequest<JiraBoardResponse>({ method: "GET", url: JIRA_API.BOARD });
+  const data = await jiraRequest<JiraBoardResponse>({
+    method: "GET",
+    url: JIRA_API.BOARD,
+    params: { maxResults: 100 },
+  });
 
   return handleApiResponse({
     data,
@@ -196,8 +216,8 @@ type JiraBoardSprintIssueParams = {
 export async function getJiraBoardSprintIssues(
   url: string,
   params: JiraBoardSprintIssueParams,
-): Promise<JiraBoardIssueResponse> {
-  const data = await jiraRequest<JiraBoardIssueResponse>({
+): Promise<JiraKanbanBoardIssueResponse> {
+  const data = await jiraRequest<JiraKanbanBoardIssueResponse>({
     method: "GET",
     url,
     params,
@@ -212,6 +232,47 @@ export async function getJiraBoardSprintIssues(
       maxResults: 50,
       total: 0,
       issues: [],
+    },
+  });
+}
+
+type JiraBoardIssueParams = {
+  offset: number;
+  limit: number;
+  jql?: string;
+  validateQuery?: boolean;
+  expand?: string[];
+  fields?: string[];
+};
+
+export async function getJiraBoardIssues(
+  url: string,
+  { expand, jql, limit, validateQuery, fields, offset }: JiraBoardIssueParams,
+): Promise<JiraKanbanBoardIssueResponse> {
+  const params = {
+    startAt: offset,
+    maxResults: limit,
+    jql,
+    validateQuery,
+    expand,
+    fields,
+  };
+  const data = await jiraRequest<JiraKanbanBoardIssueResponse>({
+    method: "GET",
+    url,
+    params,
+  });
+
+  return handleApiResponse({
+    data,
+    fileName: "jira-board-issues",
+    defaultValue: {
+      expand: "schema,names",
+      startAt: 0,
+      maxResults: 50,
+      total: 0,
+      issues: [],
+      names: {},
     },
   });
 }
@@ -253,5 +314,83 @@ export async function updateJiraWorklog(worklogId: number, params: JiraWorklogUp
     data,
     fileName: "jira-worklog-update",
     defaultValue: {} as JiraWorklog,
+  });
+}
+
+type JiraNotificationParams = {
+  offset: number;
+  limit: number;
+};
+
+export async function getJiraNotifications({
+  offset,
+  limit,
+}: JiraNotificationParams): Promise<JiraNotificationsResponse> {
+  const params = { offSet: offset, limit };
+  const data = await jiraRequest<JiraNotificationsResponse>({
+    method: "GET",
+    url: JIRA_API.NFJ_NOTIFICATION,
+    params,
+  });
+
+  return handleApiResponse({
+    data,
+    fileName: COMMAND_NAME.JIRA_NOTIFICATION_VIEW,
+    defaultValue: {
+      notificationsList: [],
+      isLicenseValid: true,
+      total: 0,
+      userSettings: {},
+      isLoggedOut: false,
+      count: 0,
+      unreadNotificationsCount: 0,
+      username: "",
+    },
+  });
+}
+
+export async function markJiraNotificationAsRead(notificationId: number): Promise<void> {
+  await jiraRequest<void>({
+    method: "POST",
+    url: JIRA_API.NFJ_MARK_NOTIFICATIONS_AS_READ,
+    params: {
+      isRead: 1,
+      notificationId,
+    },
+    acceptHtml: true,
+  });
+}
+
+export async function markJiraAllNotificationsAsRead(): Promise<void> {
+  await jiraRequest<void>({
+    method: "POST",
+    url: JIRA_API.NFJ_MARK_NOTIFICATIONS_AS_READ,
+    params: {},
+    acceptHtml: true,
+  });
+}
+
+export async function setJiraNotificationState(notificationId: number): Promise<void> {
+  await jiraRequest<void>({
+    method: "POST",
+    url: JIRA_API.NFJ_NOTIFICATION_STATE,
+    params: {
+      state: true,
+      notificationId,
+    },
+    acceptHtml: true,
+  });
+}
+
+/**
+ * Clear the unread notification counter in the UI navigation bar.
+ * Note: This only clears the counter display, it does NOT mark any specific notification or all notifications as read.
+ */
+export async function clearJiraNotificationsCounter(): Promise<void> {
+  await jiraRequest<void>({
+    method: "POST",
+    url: JIRA_API.NFJ_NOTIFICATIONS_COUNTER,
+    params: {},
+    acceptHtml: true,
   });
 }

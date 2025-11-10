@@ -10,6 +10,7 @@ type RequestParams = {
   method: Method;
   url: string;
   params?: Record<string, unknown>;
+  acceptHtml?: boolean;
 };
 
 export async function confluenceRequest<T>(params: RequestParams): Promise<T | null> {
@@ -37,10 +38,18 @@ function createKyInstance(baseURL: string, appType: AppType): KyInstance {
       ],
       afterResponse: [
         async (request, _options, response) => {
+          const acceptHeader = request.headers.get("accept") || "";
+          const contentType = response.headers.get("content-type") || "";
+
+          if (contentType.includes("text/html") && acceptHeader.includes("application/json")) {
+            throw new Error(
+              `Service not found (404): API endpoint returned HTML instead of JSON. This endpoint may not be supported. (${request.method} ${request.url})`,
+            );
+          }
+
           if (!response.ok) {
             let errorMessage = "";
             try {
-              const contentType = response.headers.get("content-type") || "";
               if (contentType.includes("application/json")) {
                 const errorBody = await response.json();
                 errorMessage = extractErrorMessage(errorBody);
@@ -81,18 +90,25 @@ function createKyInstance(baseURL: string, appType: AppType): KyInstance {
 
 const kyInstance = createKyInstance(CURRENT_BASE_URL, CURRENT_APP_TYPE);
 
-export async function apiRequest<T>({ method, url, params }: RequestParams): Promise<T | null> {
-  const cleanUrl = url.startsWith("/") ? url.slice(1) : url;
-
-  const response = await kyInstance(cleanUrl, {
+export async function apiRequest<T>({ method, url, params, acceptHtml = false }: RequestParams): Promise<T | null> {
+  const normalizedUrl = url.startsWith("/") ? url.slice(1) : url;
+  const options = {
     method,
+    headers: { Accept: acceptHtml ? "text/html" : "application/json" },
     ...(method === "GET" || method === "DELETE"
       ? { searchParams: params as Record<string, string | number | boolean> }
       : { json: params }),
-  });
+  };
+
+  const response = await kyInstance(normalizedUrl, options);
 
   if (response.status === 204) {
     return null;
+  }
+
+  const contentType = response.headers.get("content-type") || "";
+  if (contentType.includes("text/html")) {
+    return (await response.text()) as T;
   }
 
   return await response.json<T>();

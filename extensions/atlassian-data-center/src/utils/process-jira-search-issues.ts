@@ -1,7 +1,7 @@
-import { getIssueTypeIcon, getJiraIssueEditUrl, getJiraIssueUrl, getIssuePriorityIcon } from "@/utils";
+import { getIssueTypeIcon, getJiraIssueEditUrl, getJiraIssueUrl, buildPriorityAndStatusAccessories } from "@/utils";
 import type {
   JiraSearchIssue,
-  JiraUser,
+  JiraIssueUser,
   ProcessedJiraIssue,
   ListItemAccessories,
   ListItemSubtitle,
@@ -32,11 +32,11 @@ export function processJiraSearchIssue(
     (acc, field) => {
       const value = issue.fields[field.id];
       if (value !== undefined && value !== null) {
-        acc[field.id] = value as JiraUser;
+        acc[field.id] = value as JiraIssueUser;
       }
       return acc;
     },
-    {} as Record<string, JiraUser>,
+    {} as Record<string, JiraIssueUser>,
   );
 
   const subtitle = buildSubtitle(issue, selectedFieldValue, fieldsNameMap);
@@ -57,7 +57,7 @@ export function processJiraSearchIssue(
 
 function buildSubtitle(
   issue: JiraSearchIssue,
-  selectedFieldValue?: Record<string, JiraUser>,
+  selectedFieldValue?: Record<string, JiraIssueUser>,
   fieldsNameMap?: Record<string, string>,
 ): ListItemSubtitle {
   const { key: issueKey, fields } = issue;
@@ -103,30 +103,9 @@ function buildAccessories(issue: JiraSearchIssue): ListItemAccessories {
   };
   const accessories: ListItemAccessories = [];
 
-  const priority = fields.priority?.name;
-  if (priority) {
-    const priorityIcon = getIssuePriorityIcon(priority);
-
-    if (priorityIcon) {
-      accessories.push({
-        icon: priorityIcon,
-        tooltip: `Priority: ${priority}`,
-      });
-    } else {
-      accessories.push({
-        tag: priority,
-        tooltip: `Priority: ${priority}`,
-      });
-    }
-  }
-
-  const status = fields.status?.name;
-  if (status) {
-    accessories.push({
-      tag: status,
-      tooltip: `Status: ${status}`,
-    });
-  }
+  // Add priority and status accessories
+  const priorityAndStatusAccessories = buildPriorityAndStatusAccessories(fields.priority?.name, fields.status?.name);
+  accessories.push(...priorityAndStatusAccessories);
 
   const timeTooltipParts = [];
   if (created) {
@@ -142,15 +121,15 @@ function buildAccessories(issue: JiraSearchIssue): ListItemAccessories {
   }
 
   if (timeTracking.originalEstimate) {
-    timeTooltipParts.push(`Estimate Time: ${timeTracking.originalEstimate}`);
+    timeTooltipParts.push(`Σ Estimated: ${timeTracking.originalEstimate}`);
   }
 
   if (timeTracking.remainingEstimate) {
-    timeTooltipParts.push(`Remaining Time: ${timeTracking.remainingEstimate}`);
+    timeTooltipParts.push(`Σ Remaining: ${timeTracking.remainingEstimate}`);
   }
 
   if (timeTracking.timeSpent) {
-    timeTooltipParts.push(`Logged Time: ${timeTracking.timeSpent}`);
+    timeTooltipParts.push(`Σ Logged: ${timeTracking.timeSpent}`);
   }
 
   accessories.unshift({

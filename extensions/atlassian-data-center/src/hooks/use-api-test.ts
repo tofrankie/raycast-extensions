@@ -28,6 +28,6 @@ async function fetchApi() {
     const data = await apiRequest({ method, url, params });
     handleApiResponse({ data, fileName: "test", defaultValue: null });
   } catch (err) {
-    console.error("❌ Fetch Test Error:", err);
+    console.error("🚀 ~ fetchApi ~ err:", err);
   }
 }

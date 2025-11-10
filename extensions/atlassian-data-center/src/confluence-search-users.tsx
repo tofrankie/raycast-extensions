@@ -1,24 +1,24 @@
-import { useState, useEffect, useMemo } from "react";
-import { List, ActionPanel, Action, Icon, showToast, Toast } from "@raycast/api";
-import { showFailureToast } from "@raycast/utils";
+import { useState, useMemo } from "react";
+import { List, ActionPanel, Action, Icon } from "@raycast/api";
 
-import { QueryProvider, DebugActions } from "@/components";
+import { withQuery, DebugActions } from "@/components";
 import { AVATAR_TYPE, PAGINATION_SIZE, QUERY_TYPE } from "@/constants";
-import { useConfluenceSearchUserInfiniteQuery, useAvatar, useConfluenceCurrentUser } from "@/hooks";
+import {
+  useConfluenceSearchUsersInfiniteQuery,
+  useAvatar,
+  useConfluenceCurrentUser,
+  useRefetchWithToast,
+  useFetchNextPageWithToast,
+} from "@/hooks";
 import { avatarExtractors, buildQuery, processUserInputAndFilter } from "@/utils";
 
-const EMPTY_INFINITE_DATA = { items: [], hasMore: false, totalCount: 0 };
+const EMPTY_INFINITE_DATA = { list: [], total: 0 };
 
-export default function ConfluenceSearchUsersProvider() {
-  return (
-    <QueryProvider>
-      <ConfluenceSearchUsers />
-    </QueryProvider>
-  );
-}
+export default withQuery(ConfluenceSearchUsers);
 
 function ConfluenceSearchUsers() {
   const [searchText, setSearchText] = useState("");
+
   useConfluenceCurrentUser();
 
   const cql = useMemo(() => {
@@ -45,70 +45,51 @@ function ConfluenceSearchUsers() {
   const {
     data = EMPTY_INFINITE_DATA,
     fetchNextPage,
+    hasNextPage,
     isFetchingNextPage,
     isLoading,
     isSuccess,
-    error,
     refetch,
-  } = useConfluenceSearchUserInfiniteQuery(cql);
+  } = useConfluenceSearchUsersInfiniteQuery(cql, {
+    enabled: !!cql,
+    meta: { errorMessage: "Failed to Search User" },
+  });
 
   useAvatar({
-    items: data.items,
+    items: data.list,
     avatarType: AVATAR_TYPE.CONFLUENCE_USER,
     extractAvatarData: avatarExtractors.confluenceUser,
   });
 
-  useEffect(() => {
-    if (error) {
-      showFailureToast(error, { title: "Failed to Search User" });
-    }
-  }, [error]);
+  const refetchWithToast = useRefetchWithToast({ refetch });
 
-  const handleRefresh = async () => {
-    try {
-      await refetch();
-      showToast(Toast.Style.Success, "Refreshed");
-    } catch {
-      // Error handling is done by useEffect
-    }
-  };
+  const fetchNextPageWithToast = useFetchNextPageWithToast({
+    hasNextPage,
+    isFetchingNextPage,
+    fetchNextPage,
+  });
 
-  const handleLoadMore = () => {
-    if (data.hasMore && !isFetchingNextPage) {
-      fetchNextPage();
-    }
-  };
+  const isEmpty = isSuccess && !data.list.length;
 
-  const isEmpty = isSuccess && !data.items.length;
-
-  const searchTitle = `Results (${data.items.length}/${data?.totalCount})`;
+  const searchTitle = `Results (${data.list.length}/${data?.total})`;
 
   return (
     <List
       throttle
       isLoading={isLoading}
       onSearchTextChange={setSearchText}
-      searchBarPlaceholder="Search users by name..."
+      searchBarPlaceholder="Search by name..."
       pagination={{
-        hasMore: data.hasMore,
-        onLoadMore: handleLoadMore,
+        hasMore: hasNextPage,
+        onLoadMore: fetchNextPageWithToast,
         pageSize: PAGINATION_SIZE,
       }}
     >
       {isEmpty ? (
-        <List.EmptyView
-          icon={Icon.MagnifyingGlass}
-          title="No Results"
-          description="Try adjusting your search filters"
-          actions={
-            <ActionPanel>
-              <Action.CopyToClipboard title="Copy CQL" content={cql} />
-            </ActionPanel>
-          }
-        />
+        <NoUsersEmptyView cql={cql} />
       ) : (
         <List.Section title={searchTitle}>
-          {data.items.map((item) => {
+          {data.list.map((item) => {
             return (
               <List.Item
                 key={item.renderKey}
@@ -129,7 +110,7 @@ function ConfluenceSearchUsers() {
                       title="Refresh"
                       icon={Icon.ArrowClockwise}
                       shortcut={{ modifiers: ["cmd"], key: "r" }}
-                      onAction={handleRefresh}
+                      onAction={refetchWithToast}
                     />
                     <DebugActions />
                   </ActionPanel>
@@ -140,5 +121,24 @@ function ConfluenceSearchUsers() {
         </List.Section>
       )}
     </List>
+  );
+}
+
+interface NoUsersEmptyViewProps {
+  cql: string;
+}
+
+function NoUsersEmptyView({ cql }: NoUsersEmptyViewProps) {
+  return (
+    <List.EmptyView
+      icon={Icon.MagnifyingGlass}
+      title="No Results"
+      description="Try adjusting your search filters"
+      actions={
+        <ActionPanel>
+          <Action.CopyToClipboard title="Copy CQL" content={cql} />
+        </ActionPanel>
+      }
+    />
   );
 }

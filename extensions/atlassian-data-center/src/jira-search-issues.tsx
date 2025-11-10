@@ -1,11 +1,19 @@
 import { useState, useMemo, useEffect } from "react";
-import { List, ActionPanel, Action, Icon, showToast, Toast } from "@raycast/api";
-import { showFailureToast } from "@raycast/utils";
+import { List, ActionPanel, Action, Icon, Color } from "@raycast/api";
 
-import { SearchBarAccessory, QueryProvider, QueryWrapper, DebugActions } from "@/components";
+import { SearchBarAccessory, withQuery, DebugActions } from "@/components";
 import { JiraIssueTransitionForm, JiraWorklogForm } from "@/pages";
 import { COMMAND_NAME, PAGINATION_SIZE, QUERY_TYPE, JIRA_SEARCH_ISSUE_FILTERS } from "@/constants";
-import { useJiraProjectQuery, useJiraSearchIssueInfiniteQuery, useJiraCurrentUser } from "@/hooks";
+import JiraNotificationView from "@/jira-notification-view";
+import {
+  useJiraProjectQuery,
+  useJiraSearchIssuesInfiniteQuery,
+  useJiraCurrentUser,
+  useJiraUnreadNotificationsQuery,
+  useJiraNotificationAvailableCachedState,
+  useRefetchWithToast,
+  useFetchNextPageWithToast,
+} from "@/hooks";
 import {
   getSectionTitle,
   processUserInputAndFilter,
@@ -14,23 +22,21 @@ import {
   replaceQueryCurrentUser,
   isIssueKey,
   isIssueNumber,
+  clearJiraNotificationsCounter,
 } from "@/utils";
 import type { ProcessedJiraIssue, SearchFilter } from "@/types";
 
-const EMPTY_INFINITE_DATA = { issues: [], hasMore: false, totalCount: 0 };
+const EMPTY_INFINITE_DATA = { list: [], total: 0 };
 const DEFAULT_FILTER = JIRA_SEARCH_ISSUE_FILTERS.find((item) => item.value === "updated_recently");
 
-export default function JiraSearchIssuesProvider() {
-  return (
-    <QueryProvider>
-      <JiraSearchIssues />
-    </QueryProvider>
-  );
-}
+export default withQuery(JiraSearchIssues);
 
 function JiraSearchIssues() {
   const [searchText, setSearchText] = useState("");
   const [filter, setFilter] = useState<SearchFilter | null>(null);
+
+  const { available: notificationAvailable, setAvailable: setNotificationAvailable } =
+    useJiraNotificationAvailableCachedState();
 
   const {
     data: projectKeys,
@@ -38,6 +44,7 @@ function JiraSearchIssues() {
     error: jiraProjectError,
   } = useJiraProjectQuery({
     select: (list) => list.map((item) => item.key),
+    meta: { errorMessage: "Failed to Load Project" },
   });
 
   const { jql, filterForQuery } = useMemo(() => {
@@ -91,62 +98,55 @@ function JiraSearchIssues() {
 
   const {
     data = EMPTY_INFINITE_DATA,
-    error,
     isLoading,
     isSuccess,
     fetchNextPage,
     hasNextPage,
     isFetchingNextPage,
     refetch,
-  } = useJiraSearchIssueInfiniteQuery(jql, {
+  } = useJiraSearchIssuesInfiniteQuery(jql, {
     enabled: jiraIssueEnabled,
+    meta: { errorMessage: "Failed to Search Issue" },
   });
 
-  const { currentUser, error: currentUserError } = useJiraCurrentUser();
+  const {
+    data: unreadNotificationsCount = 0,
+    refetch: refetchUnreadNotifications,
+    error: unreadNotificationsError,
+  } = useJiraUnreadNotificationsQuery({
+    enabled: notificationAvailable,
+  });
+
+  const { currentUser } = useJiraCurrentUser();
+
+  const fetchNextPageWithToast = useFetchNextPageWithToast({
+    hasNextPage,
+    isFetchingNextPage,
+    fetchNextPage,
+  });
+
+  const refetchWithToast = useRefetchWithToast({ refetch });
+
+  useEffect(() => {
+    if (unreadNotificationsError && unreadNotificationsError.message.includes("404")) {
+      setNotificationAvailable(false);
+    }
+  }, [unreadNotificationsError]);
+
+  const isEmpty = isSuccess && !data.list.length;
+
+  const sectionTitle = getSectionTitle(filterForQuery, {
+    fetchedCount: data.list.length,
+    totalCount: data?.total || 0,
+  });
 
   const handleSearchTextChange = (text: string) => {
     setSearchText(text);
   };
 
-  const handleLoadMore = () => {
-    if (hasNextPage && !isFetchingNextPage) {
-      fetchNextPage();
-    }
+  const handleViewMoreNotifications = () => {
+    clearJiraNotificationsCounter().catch(() => {});
   };
-
-  const hasMore = data?.hasMore || false;
-
-  useEffect(() => {
-    if (currentUserError) {
-      showFailureToast(currentUserError, { title: "Failed to Load User" });
-    }
-  }, [currentUserError]);
-
-  useEffect(() => {
-    if (jiraProjectError) {
-      showFailureToast(jiraProjectError, { title: "Failed to Load Project" });
-    }
-  }, [jiraProjectError]);
-
-  useEffect(() => {
-    if (error) {
-      showFailureToast(error, { title: "Failed to Search Issue" });
-    }
-  }, [error]);
-
-  const handleRefresh = async () => {
-    try {
-      await refetch();
-      showToast(Toast.Style.Success, "Refreshed");
-    } catch {
-      // Error handling is done by useEffect
-    }
-  };
-
-  const sectionTitle = getSectionTitle(filterForQuery, {
-    fetchedCount: data.issues.length,
-    totalCount: data?.totalCount || 0,
-  });
 
   const copyJQL = async () => {
     const getFinalJQL = (issues: ProcessedJiraIssue[]) => {
@@ -176,7 +176,7 @@ function JiraSearchIssues() {
       return filteredJQL;
     };
 
-    let finalJQL = !searchText || !isIssueNumber(searchText) ? jql : getFinalJQL(data.issues);
+    let finalJQL = !searchText || !isIssueNumber(searchText) ? jql : getFinalJQL(data.list);
 
     if (currentUser?.name) {
       finalJQL = replaceQueryCurrentUser(finalJQL, currentUser.name);
@@ -185,42 +185,53 @@ function JiraSearchIssues() {
     await copyToClipboardWithToast(finalJQL);
   };
 
-  const isEmpty = isSuccess && !data.issues.length;
-
   return (
     <List
       throttle
       isLoading={isLoading}
       onSearchTextChange={handleSearchTextChange}
-      searchBarPlaceholder="Search issues by summary, key..."
+      searchBarPlaceholder="Search by summary, key..."
       searchBarAccessory={
         <SearchBarAccessory
-          commandName={COMMAND_NAME.JIRA_SEARCH_ISSUE}
+          commandName={COMMAND_NAME.JIRA_SEARCH_ISSUES}
           value={filter?.value || ""}
           onChange={setFilter}
         />
       }
       pagination={{
-        hasMore,
-        onLoadMore: handleLoadMore,
+        hasMore: hasNextPage,
+        onLoadMore: fetchNextPageWithToast,
         pageSize: PAGINATION_SIZE,
       }}
     >
-      <QueryWrapper query={searchText} queryType={QUERY_TYPE.JQL}>
-        {isEmpty ? (
-          <List.EmptyView
-            icon={Icon.MagnifyingGlass}
-            title="No Results"
-            description="Try adjusting your search filters or check your JQL syntax"
-            actions={
-              <ActionPanel>
-                <Action.CopyToClipboard title="Copy JQL" content={jql} />
-              </ActionPanel>
-            }
-          />
-        ) : (
+      {isEmpty ? (
+        <NoIssuesEmptyView jql={jql} />
+      ) : (
+        <>
+          {unreadNotificationsCount > 0 && (
+            <List.Section title="Notifications">
+              <List.Item
+                icon={{ source: Icon.Bell, tintColor: Color.Red }}
+                title={`You have ${unreadNotificationsCount} unread ${unreadNotificationsCount > 1 ? "notifications" : "notification"}`}
+                accessories={[{ tag: { value: `${unreadNotificationsCount}`, color: "#f44336" } }]}
+                actions={
+                  <ActionPanel>
+                    <Action.Push
+                      icon={Icon.Bell}
+                      title="View More"
+                      target={<JiraNotificationView />}
+                      onPush={handleViewMoreNotifications}
+                      onPop={() => {
+                        refetchUnreadNotifications();
+                      }}
+                    />
+                  </ActionPanel>
+                }
+              />
+            </List.Section>
+          )}
           <List.Section title={sectionTitle}>
-            {data.issues.map((item) => (
+            {data.list.map((item) => (
               <List.Item
                 key={item.renderKey}
                 title={item.title}
@@ -230,22 +241,24 @@ function JiraSearchIssues() {
                 actions={
                   <ActionPanel>
                     <Action.OpenInBrowser title="Open in Browser" url={item.url} />
-                    <Action.OpenInBrowser
-                      icon={Icon.Pencil}
-                      title="Edit in Browser"
-                      url={item.editUrl}
-                      shortcut={{ modifiers: ["cmd"], key: "e" }}
-                    />
+                    {item.editUrl && (
+                      <Action.OpenInBrowser
+                        icon={Icon.Pencil}
+                        title="Edit in Browser"
+                        url={item.editUrl}
+                        shortcut={{ modifiers: ["cmd"], key: "e" }}
+                      />
+                    )}
                     <Action.Push
                       title="Create Worklog"
-                      target={<JiraWorklogForm issueKey={item.key} onUpdate={handleRefresh} />}
+                      target={<JiraWorklogForm issueKey={item.key} onUpdate={refetchWithToast} />}
                       icon={Icon.Clock}
                       shortcut={{ modifiers: ["cmd", "shift"], key: "n" }}
                     />
                     <Action.Push
                       icon={Icon.Switch}
                       title="Transition Status"
-                      target={<JiraIssueTransitionForm issueKey={item.key} onUpdate={handleRefresh} />}
+                      target={<JiraIssueTransitionForm issueKey={item.key} onUpdate={refetchWithToast} />}
                       shortcut={{ modifiers: ["cmd"], key: "t" }}
                     />
                     <Action.CopyToClipboard
@@ -257,11 +270,6 @@ function JiraSearchIssues() {
                       title="Copy Key"
                       content={item.key}
                       shortcut={{ modifiers: ["cmd", "shift"], key: "c" }}
-                    />
-                    <Action.CopyToClipboard
-                      title="Copy Summary"
-                      content={item.summary}
-                      shortcut={{ modifiers: ["cmd", "shift"], key: "." }}
                     />
                     {jql && (
                       <Action
@@ -275,7 +283,7 @@ function JiraSearchIssues() {
                       icon={Icon.ArrowClockwise}
                       title="Refresh"
                       shortcut={{ modifiers: ["cmd"], key: "r" }}
-                      onAction={handleRefresh}
+                      onAction={refetchWithToast}
                     />
                     <DebugActions />
                   </ActionPanel>
@@ -283,8 +291,27 @@ function JiraSearchIssues() {
               />
             ))}
           </List.Section>
-        )}
-      </QueryWrapper>
+        </>
+      )}
     </List>
+  );
+}
+
+interface NoIssuesEmptyViewProps {
+  jql: string;
+}
+
+function NoIssuesEmptyView({ jql }: NoIssuesEmptyViewProps) {
+  return (
+    <List.EmptyView
+      icon={Icon.MagnifyingGlass}
+      title="No Results"
+      description="Try adjusting your search filters or check your JQL syntax"
+      actions={
+        <ActionPanel>
+          <Action.CopyToClipboard title="Copy JQL" content={jql} />
+        </ActionPanel>
+      }
+    />
   );
 }

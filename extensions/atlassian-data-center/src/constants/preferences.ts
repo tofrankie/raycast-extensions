@@ -1,7 +1,6 @@
 import { environment, getPreferenceValues } from "@raycast/api";
 
 const preferences = getPreferenceValues<Preferences>();
-const worklogViewPreferences = getPreferenceValues<Preferences.JiraWorklogView>();
 const commandName = environment.commandName;
 
 export const CONFLUENCE_BASE_URL = preferences.confluenceBaseUrl;
@@ -20,8 +19,8 @@ export const CURRENT_BASE_URL = commandName?.startsWith("jira-") ? JIRA_BASE_URL
 
 const DEFAULT_WORKING_DAYS_PER_WEEK = 5;
 const DEFAULT_WORKING_HOURS_PER_DAY = 8;
-export const WORKING_DAYS_PER_WEEK = formatWorkingDaysPerWeek(worklogViewPreferences.jiraWorkingDaysPerWeek);
-export const WORKING_HOURS_PER_DAY = formatWorkingHoursPerDay(worklogViewPreferences.jiraWorkingHoursPerDay);
+export const WORKING_DAYS_PER_WEEK = formatWorkingDaysPerWeek(preferences.jiraWorkingDaysPerWeek);
+export const WORKING_HOURS_PER_DAY = formatWorkingHoursPerDay(preferences.jiraWorkingHoursPerDay);
 export const WORKING_SERCONDS_PER_DAY = WORKING_HOURS_PER_DAY * 3600;
 
 function formatPaginationSize(paginationSize: string) {

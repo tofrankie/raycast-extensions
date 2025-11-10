@@ -60,7 +60,7 @@ function processWorklogItem(worklog: JiraWorklog): ProcessedWorklog {
   const accessories: ListItemAccessories = [
     {
       tag: timeSpent,
-      tooltip: `Logged Time: ${timeSpent}\nComment:\n${comment || "No comment"}`,
+      tooltip: `Σ Logged: ${timeSpent}\nComment:\n${comment || "No comment"}`,
     },
   ];
 

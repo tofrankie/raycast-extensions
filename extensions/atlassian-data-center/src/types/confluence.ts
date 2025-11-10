@@ -11,7 +11,7 @@ export type ConfluenceIconType = ConfluenceEntityType | ConfluenceContentType;
 
 export type ConfluenceLabelType = ConfluenceEntityType | ConfluenceContentType;
 
-export interface ConfluenceSearchContentResponse {
+export interface ConfluenceSearchContentsResponse {
   results: ConfluenceSearchContentResult[];
   start: number;
   limit: number;

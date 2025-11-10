@@ -52,3 +52,8 @@ export const JIRA_WORKLOG_RANGE = {
   WEEKLY: "weekly",
   MONTHLY: "monthly",
 } as const;
+
+export const JIRA_BOARD_TYPE = {
+  SCRUM: "scrum",
+  KANBAN: "kanban",
+} as const;

@@ -1,8 +1,8 @@
-import { useState, useEffect, useMemo } from "react";
+import { useState, useMemo } from "react";
 import { Form, ActionPanel, Action, Icon, showToast, Toast, useNavigation } from "@raycast/api";
 import { showFailureToast } from "@raycast/utils";
 
-import { QueryProvider } from "@/components";
+import { withQuery } from "@/components";
 import {
   useJiraCurrentUser,
   useJiraIssueQuery,
@@ -10,31 +10,30 @@ import {
   useJiraIssueTransitionMutation,
 } from "@/hooks";
 
+export default withQuery(JiraIssueTransitionForm);
+
 interface JiraIssueTransitionProps {
   issueKey: string;
   onUpdate?: () => void;
-}
-
-export default function JiraIssueTransitionFormProvider(props: JiraIssueTransitionProps) {
-  return (
-    <QueryProvider>
-      <JiraIssueTransitionForm {...props} />
-    </QueryProvider>
-  );
 }
 
 function JiraIssueTransitionForm({ issueKey, onUpdate }: JiraIssueTransitionProps) {
   const { pop } = useNavigation();
   const [selectedTransitionId, setSelectedTransitionId] = useState<string>("");
   const { currentUser } = useJiraCurrentUser();
-  const { data: issue, isLoading: isIssueLoading, error: issueError } = useJiraIssueQuery(issueKey);
+  const { data: issue, isLoading: issueLoading } = useJiraIssueQuery(issueKey, {
+    enabled: !!issueKey,
+    meta: { errorMessage: "Failed to Load Issue" },
+  });
 
   const {
     data: transitions,
-    isLoading: isTransitionsLoading,
-    error: transitionsError,
-    isSuccess: isTransitionsSuccess,
-  } = useJiraIssueTransitionsQuery(issueKey);
+    isLoading: transitionsLoading,
+    isSuccess: transitionsSuccess,
+  } = useJiraIssueTransitionsQuery(issueKey, {
+    enabled: !!issueKey,
+    meta: { errorMessage: "Failed to Load Issue Transitions" },
+  });
 
   const transitionMutation = useJiraIssueTransitionMutation({
     onSuccess: () => {
@@ -77,19 +76,7 @@ function JiraIssueTransitionForm({ issueKey, onUpdate }: JiraIssueTransitionProp
     pop();
   };
 
-  useEffect(() => {
-    if (issueError) {
-      showFailureToast(issueError, { title: "Failed to Load Issue" });
-    }
-  }, [issueError]);
-
-  useEffect(() => {
-    if (transitionsError) {
-      showFailureToast(transitionsError, { title: "Failed to Load Issue Transitions" });
-    }
-  }, [transitionsError]);
-
-  const isLoading = isIssueLoading || isTransitionsLoading || transitionMutation.isPending;
+  const isLoading = issueLoading || transitionsLoading || transitionMutation.isPending;
 
   const availableStatusList = useMemo(() => {
     if (!issue || !transitions) return [];
@@ -115,8 +102,8 @@ function JiraIssueTransitionForm({ issueKey, onUpdate }: JiraIssueTransitionProp
   }, [issue, currentUser]);
 
   const hasPermission = useMemo(() => {
-    return isTransitionsSuccess && !!transitions?.transitions.length;
-  }, [isTransitionsSuccess, transitions?.transitions.length]);
+    return transitionsSuccess && !!transitions?.transitions.length;
+  }, [transitionsSuccess, transitions?.transitions.length]);
 
   return (
     <Form
@@ -133,7 +120,7 @@ function JiraIssueTransitionForm({ issueKey, onUpdate }: JiraIssueTransitionProp
       <Form.Description title="Summary" text={displayValues.summary} />
       <Form.Description title="Assignee" text={displayValues.assignee} />
       <Form.Description title="Status" text={displayValues.status} />
-      {isTransitionsSuccess && !hasPermission ? (
+      {transitionsSuccess && !hasPermission ? (
         <Form.Description title="Tips" text="⚠️ You don't have permission to transition this issue" />
       ) : (
         <Form.Dropdown

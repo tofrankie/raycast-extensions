@@ -31,6 +31,7 @@ On first use, you'll need to provide:
 - **Search Issues** - Search Jira issues
 - **Board View** - View active sprint issues on Jira board
 - **Worklog View** - View your Jira worklog
+- **Notification View** - View Jira notifications (requires [Notifications for Jira](https://marketplace.atlassian.com/apps/1217434/notifications-in-jira-desktop-and-icon-alerts) plugin on your Jira instance)
 - **Manage Fields** - Manage custom fields for Jira issue search
 - **JQL Support** - Use [Jira Query Language](https://confluence.atlassian.com/jiracoreserver/advanced-searching-939937709.html) for complex searches
 - **Common Filters** - My Open Issues, Open Issues, Assigned to Me, Reported by Me, Created Recently, Updated Recently, Resolved Recently, Viewed Recently, Watched by Me
