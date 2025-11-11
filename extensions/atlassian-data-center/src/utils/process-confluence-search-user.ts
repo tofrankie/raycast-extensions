@@ -9,18 +9,17 @@ import {
   CONFLUENCE_TYPE_ICON,
   CACHE_KEY,
 } from "@/constants";
-import type { ConfluenceSearchResult, ProcessedConfluenceUser, ConfluenceCurrentUser } from "@/types";
+import type { ConfluenceSearchResponse, ProcessedConfluenceUser, ConfluenceCurrentUser } from "@/types";
 
-export function processConfluenceSearchUsers(items: ConfluenceSearchResult[]): ProcessedConfluenceUser[] {
+type ConfluenceSearchResult = ConfluenceSearchResponse["results"][number];
+
+export function processConfluenceUserSearchResult(items: ConfluenceSearchResult[]): ProcessedConfluenceUser[] {
   const cachedCurrentUser = confluenceCurrentUserCache.get(CACHE_KEY.CONFLUENCE_CURRENT_USER);
   const currentUser = cachedCurrentUser ? JSON.parse(cachedCurrentUser) : null;
-  return items.map((item) => processConfluenceSearchUserItem(item, currentUser));
+  return items.map((item) => processItem(item, currentUser));
 }
 
-function processConfluenceSearchUserItem(
-  item: ConfluenceSearchResult,
-  currentUser: ConfluenceCurrentUser | null,
-): ProcessedConfluenceUser {
+function processItem(item: ConfluenceSearchResult, currentUser: ConfluenceCurrentUser | null): ProcessedConfluenceUser {
   const user = item.user!;
 
   const title = user.displayName;

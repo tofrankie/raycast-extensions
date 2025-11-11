@@ -1,4 +1,4 @@
-export interface JiraNotificationItem {
+export type JiraNotificationItem = {
   actionUser: string;
   date: string;
   isApprovalUser: boolean;
@@ -45,9 +45,9 @@ export interface JiraNotificationItem {
     title: string;
     content: string;
   }>;
-}
+};
 
-export interface JiraNotificationsResponse {
+export type JiraNotificationsResponse = {
   notificationsList: JiraNotificationItem[];
   isLicenseValid: boolean;
   total: number;
@@ -56,4 +56,4 @@ export interface JiraNotificationsResponse {
   count: number;
   unreadNotificationsCount: number;
   username: string;
-}
+};

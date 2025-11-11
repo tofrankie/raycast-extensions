@@ -8,13 +8,13 @@ import {
   useJiraBoardActiveSprintQuery,
   useJiraBoardConfigurationQuery,
   useJiraBoardSprintIssuesQuery,
-  useJiraKanbanBoardIssuesInfiniteQuery,
+  useJiraBoardIssuesInfiniteQuery,
   useJiraBoardCachedState,
   useFetchNextPageWithToast,
   useRefetchWithToast,
 } from "@/hooks";
 import { processAndGroupSprintIssues } from "@/utils";
-import { JIRA_BOARD_TYPE, PAGINATION_SIZE } from "./constants";
+import { JIRA_BOARD_TYPE, PAGINATION_SIZE } from "@/constants";
 import type { ProcessedJiraKanbanBoardIssue } from "@/types";
 
 export default withQuery(JiraBoardView);
@@ -61,7 +61,7 @@ function JiraBoardView() {
     hasNextPage: hasNextKanbanIssues,
     fetchNextPage: fetchNextKanbanIssues,
     refetch: refetchKanbanIssues,
-  } = useJiraKanbanBoardIssuesInfiniteQuery(boardId, {
+  } = useJiraBoardIssuesInfiniteQuery(boardId, {
     enabled: boardId > -1 && boardType === JIRA_BOARD_TYPE.KANBAN,
     meta: { errorMessage: "Failed to Load Board Issues" },
   });

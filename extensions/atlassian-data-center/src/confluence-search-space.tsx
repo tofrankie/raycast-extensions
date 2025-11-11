@@ -4,14 +4,14 @@ import { List, ActionPanel, Action, Icon } from "@raycast/api";
 import { avatarExtractors, processUserInputAndFilter, buildQuery, isJQL } from "@/utils";
 import { QUERY_TYPE } from "@/constants";
 import { AVATAR_TYPE, COMMAND_NAME, PAGINATION_SIZE } from "@/constants";
-import { SearchBarAccessory, withQuery, DebugActions } from "@/components";
+import { SearchFilter, withQuery, DebugActions } from "@/components";
 import {
-  useConfluenceSearchSpacesInfiniteQuery,
+  useConfluenceSpacesSearchInfiniteQuery,
   useAvatar,
   useRefetchWithToast,
   useFetchNextPageWithToast,
 } from "@/hooks";
-import type { SearchFilter } from "@/types";
+import type { SearchFilter as SelectedFilter } from "@/types";
 
 const EMPTY_INFINITE_DATA = { list: [], total: 0 };
 
@@ -19,11 +19,11 @@ export default withQuery(ConfluenceSearchSpaces);
 
 function ConfluenceSearchSpaces() {
   const [searchText, setSearchText] = useState("");
-  const [filter, setFilter] = useState<SearchFilter | null>(null);
+  const [filter, setFilter] = useState<SelectedFilter | null>(null);
 
   const cql = useMemo(() => {
     const trimmedText = searchText.trim();
-    let filterForQuery: SearchFilter | null | undefined = filter;
+    let filterForQuery: SelectedFilter | null | undefined = filter;
 
     if (!trimmedText && !filter?.autoQuery) {
       return "";
@@ -60,7 +60,7 @@ function ConfluenceSearchSpaces() {
     isLoading,
     isSuccess,
     refetch,
-  } = useConfluenceSearchSpacesInfiniteQuery(cql, {
+  } = useConfluenceSpacesSearchInfiniteQuery(cql, {
     enabled: !!cql,
     meta: { errorMessage: "Failed to Search Space" },
   });
@@ -90,8 +90,8 @@ function ConfluenceSearchSpaces() {
       onSearchTextChange={setSearchText}
       searchBarPlaceholder="Search by name..."
       searchBarAccessory={
-        <SearchBarAccessory
-          commandName={COMMAND_NAME.CONFLUENCE_SEARCH_SPACES}
+        <SearchFilter
+          commandName={COMMAND_NAME.CONFLUENCE_SEARCH_SPACE}
           value={filter?.value || ""}
           onChange={setFilter}
         />

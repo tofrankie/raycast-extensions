@@ -2,7 +2,7 @@ import { useState, useEffect, useMemo } from "react";
 import { List, ActionPanel, Action, Icon } from "@raycast/api";
 
 import { withQuery, DebugActions } from "@/components";
-import { useJiraFieldQuery, useRefetchWithToast } from "@/hooks";
+import { useJiraFieldsQuery, useRefetchWithToast } from "@/hooks";
 import { getSelectedFields, addSelectedField, removeSelectedField } from "@/utils";
 import type { JiraField, ProcessedJiraField } from "@/types";
 
@@ -19,7 +19,7 @@ function JiraManageFields() {
     isLoading,
     isSuccess,
     refetch,
-  } = useJiraFieldQuery({
+  } = useJiraFieldsQuery({
     meta: { errorMessage: "Failed to Load Fields" },
   });
 

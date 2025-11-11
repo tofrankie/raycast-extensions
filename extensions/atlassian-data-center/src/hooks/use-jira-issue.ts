@@ -3,34 +3,34 @@ import type { UseMutationOptions, QueryKey } from "@tanstack/react-query";
 
 import { JIRA_API, PAGINATION_SIZE, JIRA_SEARCH_ISSUE_FIELDS } from "@/constants";
 import {
-  getJiraIssue,
+  getJiraIssueByKey,
+  getJiraIssuesByJQL,
   getJiraIssueTransitions,
   transitionJiraIssue,
   transformURL,
-  searchJiraIssues,
   processJiraSearchIssue,
   getSelectedFields,
   getSelectedFieldIds,
 } from "@/utils";
 import type {
-  JiraSearchIssue,
-  JiraTransitionResponse,
-  JiraSearchIssuesResponse,
+  JiraIssueResponse,
+  JiraIssueTransitionsResponse,
+  JiraSearchResponse,
   ProcessedJiraIssue,
   QueryOptions,
   InfiniteQueryOptions,
   InfiniteQueryPageParam,
 } from "@/types";
 
-export function useJiraIssueQuery<TSelect = JiraSearchIssue>(
+export function useJiraIssueQuery<TSelect = JiraIssueResponse>(
   issueKey: string,
-  options?: QueryOptions<JiraSearchIssue, TSelect>,
+  options?: QueryOptions<JiraIssueResponse, TSelect>,
 ) {
-  return useQuery<JiraSearchIssue, Error, TSelect>({
+  return useQuery<JiraIssueResponse, Error, TSelect>({
     queryKey: ["jira-issue", issueKey],
     queryFn: () => {
       const url = transformURL(JIRA_API.ISSUE, { issueIdOrKey: issueKey });
-      return getJiraIssue(url);
+      return getJiraIssueByKey(url);
     },
     staleTime: 0,
     gcTime: 30 * 1000,
@@ -38,17 +38,17 @@ export function useJiraIssueQuery<TSelect = JiraSearchIssue>(
   });
 }
 
-export function useJiraSearchIssuesInfiniteQuery<TSelect = { list: ProcessedJiraIssue[]; total: number }>(
+export function useJiraSearchInfiniteQuery<TSelect = { list: ProcessedJiraIssue[]; total: number }>(
   jql: string,
-  options?: InfiniteQueryOptions<JiraSearchIssuesResponse, TSelect>,
+  options?: InfiniteQueryOptions<JiraSearchResponse, TSelect>,
 ) {
-  return useInfiniteQuery<JiraSearchIssuesResponse, Error, TSelect, QueryKey, InfiniteQueryPageParam>({
+  return useInfiniteQuery<JiraSearchResponse, Error, TSelect, QueryKey, InfiniteQueryPageParam>({
     queryKey: ["jira-search-issues", { jql, pageSize: PAGINATION_SIZE }],
     queryFn: async ({ pageParam }) => {
       const { offset, limit } = pageParam;
       const selectedFieldIds = getSelectedFieldIds();
 
-      return await searchJiraIssues({
+      return await getJiraIssuesByJQL({
         jql,
         offset,
         limit,
@@ -81,11 +81,11 @@ export function useJiraSearchIssuesInfiniteQuery<TSelect = { list: ProcessedJira
   });
 }
 
-export function useJiraIssueTransitionsQuery<TSelect = JiraTransitionResponse>(
+export function useJiraIssueTransitionsQuery<TSelect = JiraIssueTransitionsResponse>(
   issueKey: string,
-  options?: QueryOptions<JiraTransitionResponse, TSelect>,
+  options?: QueryOptions<JiraIssueTransitionsResponse, TSelect>,
 ) {
-  return useQuery<JiraTransitionResponse, Error, TSelect>({
+  return useQuery<JiraIssueTransitionsResponse, Error, TSelect>({
     queryKey: ["jira-issue-transitions", issueKey],
     queryFn: () => {
       const url = transformURL(JIRA_API.ISSUE_TRANSITIONS, { issueIdOrKey: issueKey });
@@ -98,7 +98,7 @@ export function useJiraIssueTransitionsQuery<TSelect = JiraTransitionResponse>(
 }
 
 export function useJiraIssueTransitionMutation(
-  mutationOptions?: Partial<UseMutationOptions<void, Error, { issueKey: string; transitionId: string }>>,
+  options?: Partial<UseMutationOptions<void, Error, { issueKey: string; transitionId: string }>>,
 ) {
   const queryClient = useQueryClient();
 
@@ -111,8 +111,8 @@ export function useJiraIssueTransitionMutation(
     onSuccess: (_, { issueKey }) => {
       queryClient.invalidateQueries({ queryKey: ["jira-issue", issueKey] });
       queryClient.invalidateQueries({ queryKey: ["jira-issue-transitions", issueKey] });
-      queryClient.invalidateQueries({ queryKey: ["jira-search-issue"] });
+      queryClient.invalidateQueries({ queryKey: ["jira-search-issues"] });
     },
-    ...mutationOptions,
+    ...options,
   });
 }

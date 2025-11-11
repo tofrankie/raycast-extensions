@@ -1,11 +1,32 @@
 import { JIRA_ISSUE_TYPE_NAME, JIRA_ISSUE_PRIORITY_NAME } from "@/constants";
-import type { ValueOf, JiraIssueAvatarUrls } from "@/types";
+import type { ValueOf } from "type-fest";
+import type { JiraIssueResponse, JiraSearchIssue, JiraBoardIssue } from "@/types";
 
 export type JiraIssuePriorityName = ValueOf<typeof JIRA_ISSUE_PRIORITY_NAME>;
 
 export type JiraIssueTypeName = ValueOf<typeof JIRA_ISSUE_TYPE_NAME>;
 
-export interface JiraCurrentUser {
+export type JiraIssuePriority = JiraIssueResponse["fields"]["priority"];
+
+export type JiraIssueProject = JiraIssueResponse["fields"]["project"];
+
+export type JiraIssueStatus = JiraIssueResponse["fields"]["status"];
+
+export type JiraIssueTimeTracking = Exclude<JiraIssueResponse["fields"]["timetracking"], Record<string, never>>;
+
+export type JiraIssueType = JiraIssueResponse["fields"]["issuetype"];
+
+export type JiraIssueUser = NonNullable<JiraIssueResponse["fields"]["assignee"]>;
+
+export type JiraIssueAvatarUrls = JiraIssueUser["avatarUrls"];
+
+export type JiraSearchIssueFields = JiraSearchIssue["fields"];
+
+export type JiraBoardIssueFields = JiraBoardIssue["fields"];
+
+export type JiraIssueFields = JiraIssueResponse["fields"];
+
+export type JiraCurrentUser = {
   self: string;
   key: string;
   name: string;
@@ -25,9 +46,9 @@ export interface JiraCurrentUser {
     items: unknown[];
   };
   expand: string;
-}
+};
 
-export interface JiraEpic {
+export type JiraEpic = {
   id: number;
   key: string;
   self: string;
@@ -37,9 +58,9 @@ export interface JiraEpic {
     key: string;
   };
   done: boolean;
-}
+};
 
-export interface JiraField {
+export type JiraField = {
   id: string;
   name: string;
   custom: boolean;
@@ -54,4 +75,4 @@ export interface JiraField {
     customId?: number;
     items?: string;
   };
-}
+};

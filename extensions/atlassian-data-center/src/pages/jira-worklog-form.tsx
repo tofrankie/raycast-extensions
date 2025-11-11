@@ -12,7 +12,7 @@ import {
   useJiraWorklogCreateMutation,
   useJiraWorklogUpdateMutation,
 } from "@/hooks";
-import type { JiraWorklogFormData, JiraWorklogCreateParams, JiraWorklogUpdateParams } from "@/types";
+import type { JiraWorklogCreateParams, JiraWorklogUpdateParams } from "@/types";
 
 // Validate time format (e.g. "30m", "1h", "1h 30m", "1")
 const TIME_REGEX = /^(\d+(?:\.\d+)?)\s*[hm]?(\s+(\d+(?:\.\d+)?)\s*[hm])?$/i;
@@ -24,6 +24,13 @@ interface JiraWorklogProps {
   worklogId?: number;
   onUpdate?: () => void;
 }
+
+type JiraWorklogFormData = {
+  date: Date | null;
+  timeSpent: string;
+  comment: string;
+  remainingEstimate: string;
+};
 
 function JiraWorklogForm({ issueKey, worklogId, onUpdate }: JiraWorklogProps) {
   const { pop } = useNavigation();
@@ -233,7 +240,7 @@ function JiraWorklogForm({ issueKey, worklogId, onUpdate }: JiraWorklogProps) {
 
           // Auto-calculate remaining estimate if it has a value and original remaining estimate exists
           const workedSeconds = formatWorkedTimeToSeconds(formattedTime);
-          if (originalRemainingEstimateSeconds !== undefined && workedSeconds > 0) {
+          if (originalRemainingEstimateSeconds !== undefined) {
             const newRemainingSeconds = Math.max(0, originalRemainingEstimateSeconds - workedSeconds);
             const newRemainingEstimate = formatSecondsToWorkedTime(newRemainingSeconds);
             setValue("remainingEstimate", newRemainingEstimate);

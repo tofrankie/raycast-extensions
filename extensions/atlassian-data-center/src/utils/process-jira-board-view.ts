@@ -6,21 +6,19 @@ import {
   buildPriorityAndStatusAccessories,
 } from "@/utils";
 import type {
-  JiraKanbanBoardIssue,
+  JiraBoardIssue,
   ProcessedJiraKanbanBoardIssue,
   ListItemAccessories,
   ListItemSubtitle,
-  JiraSprintResponse,
-  JiraSprint,
-  JiraBoardResponse,
-  JiraBoard,
+  JiraSprintsResponse,
+  JiraBoardsResponse,
   JiraBoardConfiguration,
   JiraField,
   JiraIssueUser,
 } from "@/types";
 
 export function processJiraBoardIssue(
-  issue: JiraKanbanBoardIssue,
+  issue: JiraBoardIssue,
   selectedFields: JiraField[],
   fieldsNameMap?: Record<string, string>,
 ): ProcessedJiraKanbanBoardIssue {
@@ -68,7 +66,7 @@ export function processJiraBoardIssue(
 }
 
 export function processJiraSprintIssues(
-  issues: JiraKanbanBoardIssue[],
+  issues: JiraBoardIssue[],
   selectedFields: JiraField[],
   boardConfiguration?: JiraBoardConfiguration,
   fieldsNameMap?: Record<string, string>,
@@ -109,10 +107,10 @@ export function processJiraSprintIssues(
 }
 
 function buildSubtitleForBoardIssue(
-  issue: JiraKanbanBoardIssue,
+  issue: JiraBoardIssue,
   selectedFieldValue?: Record<string, JiraIssueUser>,
   fieldsNameMap?: Record<string, string>,
-): ListItemSubtitle {
+): NonNullable<ListItemSubtitle> {
   const { key: issueKey, fields } = issue;
   const assignee = fields.assignee?.displayName || "Unassigned";
   const reporter = fields.reporter?.displayName || null;
@@ -144,7 +142,7 @@ function buildSubtitleForBoardIssue(
   };
 }
 
-function buildAccessoriesForBoardIssue(issue: JiraKanbanBoardIssue): ListItemAccessories {
+function buildAccessoriesForBoardIssue(issue: JiraBoardIssue): NonNullable<ListItemAccessories> {
   const { fields } = issue;
   const created = fields.created ? new Date(fields.created) : null;
   const updated = fields.updated ? new Date(fields.updated) : null;
@@ -194,10 +192,10 @@ function buildAccessoriesForBoardIssue(issue: JiraKanbanBoardIssue): ListItemAcc
 }
 
 function buildSubtitle(
-  issue: JiraKanbanBoardIssue,
+  issue: JiraBoardIssue,
   selectedFields: JiraField[],
   fieldsNameMap?: Record<string, string>,
-): ListItemSubtitle {
+): NonNullable<ListItemSubtitle> {
   const { key: issueKey, fields } = issue;
   const assignee = fields.assignee?.displayName || "Unassigned";
   const reporter = fields.reporter?.displayName || null;
@@ -240,7 +238,7 @@ function buildSubtitle(
   };
 }
 
-function buildAccessories(issue: JiraKanbanBoardIssue): ListItemAccessories {
+function buildAccessories(issue: JiraBoardIssue): NonNullable<ListItemAccessories> {
   const { fields } = issue;
   const accessories: ListItemAccessories = [];
 
@@ -256,7 +254,7 @@ function buildAccessories(issue: JiraKanbanBoardIssue): ListItemAccessories {
   return accessories;
 }
 
-function buildKeywords(issue: JiraKanbanBoardIssue, boardConfiguration?: JiraBoardConfiguration): string[] {
+function buildKeywords(issue: JiraBoardIssue, boardConfiguration?: JiraBoardConfiguration): string[] {
   const { key: issueKey, fields } = issue;
   const keywords: string[] = [issueKey, issueKey.split("-")[1]];
 
@@ -284,7 +282,7 @@ function buildKeywords(issue: JiraKanbanBoardIssue, boardConfiguration?: JiraBoa
 }
 
 export function processAndGroupSprintIssues(
-  issues: JiraKanbanBoardIssue[],
+  issues: JiraBoardIssue[],
   boardConfiguration: JiraBoardConfiguration,
 ): Record<string, ProcessedJiraKanbanBoardIssue[]> {
   const selectedFields = getSelectedFields();
@@ -319,11 +317,13 @@ export function processAndGroupSprintIssues(
   return grouped;
 }
 
-export function processActiveSprint(sprintResponse: JiraSprintResponse): JiraSprint | null {
+export function processActiveSprint(
+  sprintsResponse: JiraSprintsResponse,
+): JiraSprintsResponse["values"][number] | null {
   // TODO: Handle multiple active sprints
-  return sprintResponse.values?.[0] || null;
+  return sprintsResponse.values?.[0] || null;
 }
 
-export function processBoards(boardResponse: JiraBoardResponse): JiraBoard[] {
+export function processBoards(boardResponse: JiraBoardsResponse): JiraBoardsResponse["values"] {
   return boardResponse.values || [];
 }

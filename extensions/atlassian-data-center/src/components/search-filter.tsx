@@ -1,16 +1,16 @@
 import { List } from "@raycast/api";
 
-import { SEARCH_BAR_ACCESSORY_CONFIGS } from "@/constants";
-import type { SearchBarAccessoryCommandName, SearchFilter } from "@/types";
+import { SEARCH_FILTER_CONFIGS } from "@/constants";
+import type { SearchFilterCommandName, SearchFilter } from "@/types";
 
-interface SearchBarAccessoryProps {
-  commandName: SearchBarAccessoryCommandName;
+interface SearchFilterProps {
+  commandName: SearchFilterCommandName;
   value: string;
   onChange: (filter: SearchFilter | null) => void;
 }
 
-export default function SearchBarAccessory({ commandName, value, onChange }: SearchBarAccessoryProps) {
-  const filters = SEARCH_BAR_ACCESSORY_CONFIGS[commandName];
+export default function SearchFilter({ commandName, value, onChange }: SearchFilterProps) {
+  const filters = SEARCH_FILTER_CONFIGS[commandName];
 
   const handleFilterChange = (filterValue: string) => {
     if (filterValue === "default") {

@@ -1,11 +1,11 @@
 import { useState, useMemo } from "react";
 import { List, ActionPanel, Action, Icon } from "@raycast/api";
 
-import { SearchBarAccessory, withQuery, DebugActions } from "@/components";
+import { SearchFilter, withQuery, DebugActions } from "@/components";
 import { AVATAR_TYPE, COMMAND_NAME, PAGINATION_SIZE, QUERY_TYPE, CONFLUENCE_SEARCH_CONTENT_FILTERS } from "@/constants";
 import {
-  useConfluenceSearchContentsInfiniteQuery,
-  useToggleFavorite,
+  useConfluenceContentsSearchInfiniteQuery,
+  useToggleConfluenceContentFavorite,
   useAvatar,
   useConfluenceCurrentUser,
   useRefetchWithToast,
@@ -20,7 +20,7 @@ import {
   replaceQueryCurrentUser,
   isCQL,
 } from "@/utils";
-import type { SearchFilter } from "@/types";
+import type { SearchFilter as SelectedFilter } from "@/types";
 
 const EMPTY_INFINITE_DATA = { list: [], total: 0 };
 const DEFAULT_FILTER = CONFLUENCE_SEARCH_CONTENT_FILTERS.find((item) => item.value === "updated_recently");
@@ -29,11 +29,11 @@ export default withQuery(ConfluenceSearchContents);
 
 function ConfluenceSearchContents() {
   const [searchText, setSearchText] = useState("");
-  const [filter, setFilter] = useState<SearchFilter | null>(null);
+  const [filter, setFilter] = useState<SelectedFilter | null>(null);
 
   const { cql, filterForQuery } = useMemo(() => {
     const trimmedText = searchText.trim();
-    let filterForQuery: SearchFilter | null | undefined = filter;
+    let filterForQuery: SelectedFilter | null | undefined = filter;
 
     // If input is too short and filter is not auto-query, treat it as no input
     if (trimmedText.length < 2 && filter && !filter.autoQuery) {
@@ -78,14 +78,14 @@ function ConfluenceSearchContents() {
     isLoading,
     isSuccess,
     refetch,
-  } = useConfluenceSearchContentsInfiniteQuery(cql, {
+  } = useConfluenceContentsSearchInfiniteQuery(cql, {
     enabled: !!cql,
     meta: { errorMessage: "Failed to Search Content" },
   });
 
   const { currentUser } = useConfluenceCurrentUser();
 
-  const toggleFavorite = useToggleFavorite();
+  const toggleFavorite = useToggleConfluenceContentFavorite();
 
   useAvatar({
     items: data.list,
@@ -129,8 +129,8 @@ function ConfluenceSearchContents() {
       onSearchTextChange={setSearchText}
       searchBarPlaceholder="Search by title..."
       searchBarAccessory={
-        <SearchBarAccessory
-          commandName={COMMAND_NAME.CONFLUENCE_SEARCH_CONTENTS}
+        <SearchFilter
+          commandName={COMMAND_NAME.CONFLUENCE_SEARCH_CONTENT}
           value={filter?.value || ""}
           onChange={setFilter}
         />

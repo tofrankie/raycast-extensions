@@ -85,7 +85,7 @@ function getAvatarCacheKey(avatarUrl: string): string | undefined {
   }
 }
 
-function getAvatarIcon(cacheKey?: string, actionMakerFullName?: string): ListItemIcon {
+function getAvatarIcon(cacheKey?: string, actionMakerFullName?: string): NonNullable<ListItemIcon> {
   if (cacheKey && avatarCache.has(cacheKey)) {
     const cachedPath = avatarCache.get(cacheKey);
     if (cachedPath) {

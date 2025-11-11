@@ -1,23 +1,24 @@
 import { jiraRequest, handleApiResponse } from "@/utils";
-import { JIRA_API, COMMAND_NAME } from "@/constants";
+import { JIRA_API } from "@/constants";
 import type {
-  JiraSearchIssuesResponse,
+  JiraSearchResponse,
   JiraField,
   JiraIssueProject,
   JiraCurrentUser,
   JiraWorklog,
-  JiraSearchIssue,
-  JiraTransitionResponse,
-  JiraBoardResponse,
-  JiraSprintResponse,
+  JiraWorklogsResponse,
+  JiraIssueResponse,
+  JiraIssueTransitionsResponse,
+  JiraBoardsResponse,
+  JiraSprintsResponse,
   JiraBoardConfiguration,
-  JiraKanbanBoardIssueResponse,
+  JiraBoardIssuesResponse,
   JiraWorklogCreateParams,
   JiraWorklogUpdateParams,
   JiraNotificationsResponse,
 } from "@/types";
 
-type JiraSearchIssueParams = {
+type JiraIssuesByJQLParams = {
   offset: number;
   limit: number;
   jql: string;
@@ -26,14 +27,14 @@ type JiraSearchIssueParams = {
   fields?: string[];
 };
 
-export async function searchJiraIssues({
+export async function getJiraIssuesByJQL({
   offset,
   limit,
   jql,
   validateQuery,
   expand,
   fields,
-}: JiraSearchIssueParams): Promise<JiraSearchIssuesResponse> {
+}: JiraIssuesByJQLParams): Promise<JiraSearchResponse> {
   const params = {
     jql,
     startAt: offset,
@@ -42,38 +43,38 @@ export async function searchJiraIssues({
     expand,
     validateQuery,
   };
-  const data = await jiraRequest<JiraSearchIssuesResponse>({ method: "GET", url: JIRA_API.SEARCH, params });
+  const data = await jiraRequest<JiraSearchResponse>({ method: "GET", url: JIRA_API.SEARCH, params });
 
   return handleApiResponse({
     data,
-    fileName: COMMAND_NAME.JIRA_SEARCH_ISSUES,
+    fileName: "jira-search-issues",
     defaultValue: {
       expand: "schema,names",
       startAt: 0,
       maxResults: 20,
       total: 0,
-      issues: [] as JiraSearchIssuesResponse["issues"],
+      issues: [] as JiraSearchResponse["issues"],
       names: {},
     },
   });
 }
 
-export async function getJiraField(): Promise<JiraField[]> {
+export async function getJiraFields(): Promise<JiraField[]> {
   const data = await jiraRequest<JiraField[]>({ method: "GET", url: JIRA_API.FIELD });
 
   return handleApiResponse({
     data,
-    fileName: COMMAND_NAME.JIRA_MANAGE_FIELDS,
+    fileName: "jira-fields",
     defaultValue: [],
   });
 }
 
-export async function getJiraProject(): Promise<JiraIssueProject[]> {
+export async function getJiraProjects(): Promise<JiraIssueProject[]> {
   const data = await jiraRequest<JiraIssueProject[]>({ method: "GET", url: JIRA_API.PROJECT });
 
   return handleApiResponse({
     data,
-    fileName: "jira-project",
+    fileName: "jira-projects",
     defaultValue: [],
   });
 }
@@ -94,28 +95,28 @@ type JiraWorklogsParams = {
   worker: string[];
 };
 
-export async function getJiraWorklogs(params: JiraWorklogsParams): Promise<JiraWorklog[]> {
-  const data = await jiraRequest<JiraWorklog[]>({ method: "POST", url: JIRA_API.WORKLOG_SEARCH, params });
+export async function getJiraWorklogs(params: JiraWorklogsParams): Promise<JiraWorklogsResponse> {
+  const data = await jiraRequest<JiraWorklogsResponse>({ method: "POST", url: JIRA_API.WORKLOG_SEARCH, params });
 
   return handleApiResponse({
     data,
-    fileName: COMMAND_NAME.JIRA_WORKLOG_VIEW,
+    fileName: "jira-worklogs",
     defaultValue: [],
   });
 }
 
-export async function getJiraIssue(url: string): Promise<JiraSearchIssue> {
-  const data = await jiraRequest<JiraSearchIssue>({ method: "GET", url });
+export async function getJiraIssueByKey(url: string): Promise<JiraIssueResponse> {
+  const data = await jiraRequest<JiraIssueResponse>({ method: "GET", url });
 
   return handleApiResponse({
     data,
     fileName: "jira-issue",
-    defaultValue: {} as JiraSearchIssue,
+    defaultValue: {} as JiraIssueResponse,
   });
 }
 
-export async function getJiraIssueTransitions(url: string): Promise<JiraTransitionResponse> {
-  const data = await jiraRequest<JiraTransitionResponse>({ method: "GET", url });
+export async function getJiraIssueTransitions(url: string): Promise<JiraIssueTransitionsResponse> {
+  const data = await jiraRequest<JiraIssueTransitionsResponse>({ method: "GET", url });
 
   return handleApiResponse({
     data,
@@ -143,8 +144,8 @@ export async function transitionJiraIssue(url: string, params: JiraIssueTransiti
   });
 }
 
-export async function getJiraBoards(): Promise<JiraBoardResponse> {
-  const data = await jiraRequest<JiraBoardResponse>({
+export async function getJiraBoards(): Promise<JiraBoardsResponse> {
+  const data = await jiraRequest<JiraBoardsResponse>({
     method: "GET",
     url: JIRA_API.BOARD,
     params: { maxResults: 100 },
@@ -152,7 +153,7 @@ export async function getJiraBoards(): Promise<JiraBoardResponse> {
 
   return handleApiResponse({
     data,
-    fileName: COMMAND_NAME.JIRA_BOARD_VIEW,
+    fileName: "jira-boards",
     defaultValue: {
       maxResults: 50,
       startAt: 0,
@@ -170,8 +171,8 @@ type JiraBoardSprintParams = {
   state?: string;
 };
 
-export async function getJiraBoardSprints(url: string, params: JiraBoardSprintParams): Promise<JiraSprintResponse> {
-  const data = await jiraRequest<JiraSprintResponse>({ method: "GET", url, params });
+export async function getJiraBoardSprints(url: string, params: JiraBoardSprintParams): Promise<JiraSprintsResponse> {
+  const data = await jiraRequest<JiraSprintsResponse>({ method: "GET", url, params });
 
   return handleApiResponse({
     data,
@@ -204,7 +205,7 @@ export async function getJiraBoardConfiguration(url: string): Promise<JiraBoardC
   });
 }
 
-type JiraBoardSprintIssueParams = {
+type JiraIssuesBySprintParams = {
   expand?: string;
   jql?: string;
   maxResults?: number;
@@ -213,11 +214,11 @@ type JiraBoardSprintIssueParams = {
   startAt?: number;
 };
 
-export async function getJiraBoardSprintIssues(
+export async function getJiraIssuesBySprint(
   url: string,
-  params: JiraBoardSprintIssueParams,
-): Promise<JiraKanbanBoardIssueResponse> {
-  const data = await jiraRequest<JiraKanbanBoardIssueResponse>({
+  params: JiraIssuesBySprintParams,
+): Promise<JiraBoardIssuesResponse> {
+  const data = await jiraRequest<JiraBoardIssuesResponse>({
     method: "GET",
     url,
     params,
@@ -236,7 +237,7 @@ export async function getJiraBoardSprintIssues(
   });
 }
 
-type JiraBoardIssueParams = {
+type JiraIssuesByBoardParams = {
   offset: number;
   limit: number;
   jql?: string;
@@ -245,10 +246,10 @@ type JiraBoardIssueParams = {
   fields?: string[];
 };
 
-export async function getJiraBoardIssues(
+export async function getJiraIssuesByBoard(
   url: string,
-  { expand, jql, limit, validateQuery, fields, offset }: JiraBoardIssueParams,
-): Promise<JiraKanbanBoardIssueResponse> {
+  { expand, jql, limit, validateQuery, fields, offset }: JiraIssuesByBoardParams,
+): Promise<JiraBoardIssuesResponse> {
   const params = {
     startAt: offset,
     maxResults: limit,
@@ -257,7 +258,7 @@ export async function getJiraBoardIssues(
     expand,
     fields,
   };
-  const data = await jiraRequest<JiraKanbanBoardIssueResponse>({
+  const data = await jiraRequest<JiraBoardIssuesResponse>({
     method: "GET",
     url,
     params,
@@ -283,7 +284,7 @@ export async function getJiraWorklogById(worklogId: number): Promise<JiraWorklog
 
   return handleApiResponse({
     data,
-    fileName: "jira-worklog-detail",
+    fileName: "jira-worklog",
     defaultValue: {} as JiraWorklog,
   });
 }
@@ -335,7 +336,7 @@ export async function getJiraNotifications({
 
   return handleApiResponse({
     data,
-    fileName: COMMAND_NAME.JIRA_NOTIFICATION_VIEW,
+    fileName: "jira-notifications",
     defaultValue: {
       notificationsList: [],
       isLicenseValid: true,

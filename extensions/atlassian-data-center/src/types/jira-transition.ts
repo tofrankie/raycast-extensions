@@ -1,21 +1,21 @@
 import type { JiraIssueStatus } from "@/types";
 
-export interface JiraTransition {
+export type JiraTransition = {
   /**
    * Transition ID
    */
   id: string;
   name: string;
   to: JiraIssueStatus;
-}
+};
 
-export interface JiraTransitionResponse {
+export type JiraIssueTransitionsResponse = {
   expand: string;
   transitions: JiraTransition[];
-}
+};
 
-export interface JiraIssueTransitionRequest {
+export type JiraIssueTransitionRequest = {
   transition: {
     id: string;
   };
-}
+};

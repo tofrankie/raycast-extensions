@@ -1,13 +1,13 @@
 import { useState, useMemo, useEffect } from "react";
 import { List, ActionPanel, Action, Icon, Color } from "@raycast/api";
 
-import { SearchBarAccessory, withQuery, DebugActions } from "@/components";
+import { SearchFilter, withQuery, DebugActions } from "@/components";
 import { JiraIssueTransitionForm, JiraWorklogForm } from "@/pages";
 import { COMMAND_NAME, PAGINATION_SIZE, QUERY_TYPE, JIRA_SEARCH_ISSUE_FILTERS } from "@/constants";
 import JiraNotificationView from "@/jira-notification-view";
 import {
-  useJiraProjectQuery,
-  useJiraSearchIssuesInfiniteQuery,
+  useJiraProjectsQuery,
+  useJiraSearchInfiniteQuery,
   useJiraCurrentUser,
   useJiraUnreadNotificationsQuery,
   useJiraNotificationAvailableCachedState,
@@ -24,7 +24,7 @@ import {
   isIssueNumber,
   clearJiraNotificationsCounter,
 } from "@/utils";
-import type { ProcessedJiraIssue, SearchFilter } from "@/types";
+import type { ProcessedJiraIssue, SearchFilter as SelectedFilter } from "@/types";
 
 const EMPTY_INFINITE_DATA = { list: [], total: 0 };
 const DEFAULT_FILTER = JIRA_SEARCH_ISSUE_FILTERS.find((item) => item.value === "updated_recently");
@@ -33,7 +33,7 @@ export default withQuery(JiraSearchIssues);
 
 function JiraSearchIssues() {
   const [searchText, setSearchText] = useState("");
-  const [filter, setFilter] = useState<SearchFilter | null>(null);
+  const [filter, setFilter] = useState<SelectedFilter | null>(null);
 
   const { available: notificationAvailable, setAvailable: setNotificationAvailable } =
     useJiraNotificationAvailableCachedState();
@@ -42,7 +42,7 @@ function JiraSearchIssues() {
     data: projectKeys,
     isFetched: isJiraProjectFetched,
     error: jiraProjectError,
-  } = useJiraProjectQuery({
+  } = useJiraProjectsQuery({
     select: (list) => list.map((item) => item.key),
     meta: { errorMessage: "Failed to Load Project" },
   });
@@ -50,7 +50,7 @@ function JiraSearchIssues() {
   const { jql, filterForQuery } = useMemo(() => {
     const trimmedText = searchText.trim();
 
-    let filterForQuery: SearchFilter | null | undefined = filter;
+    let filterForQuery: SelectedFilter | null | undefined = filter;
 
     // If input is too short and filter is not auto-query, treat it as no input
     if (!trimmedText && filter && !filter.autoQuery) {
@@ -104,7 +104,7 @@ function JiraSearchIssues() {
     hasNextPage,
     isFetchingNextPage,
     refetch,
-  } = useJiraSearchIssuesInfiniteQuery(jql, {
+  } = useJiraSearchInfiniteQuery(jql, {
     enabled: jiraIssueEnabled,
     meta: { errorMessage: "Failed to Search Issue" },
   });
@@ -192,11 +192,7 @@ function JiraSearchIssues() {
       onSearchTextChange={handleSearchTextChange}
       searchBarPlaceholder="Search by summary, key..."
       searchBarAccessory={
-        <SearchBarAccessory
-          commandName={COMMAND_NAME.JIRA_SEARCH_ISSUES}
-          value={filter?.value || ""}
-          onChange={setFilter}
-        />
+        <SearchFilter commandName={COMMAND_NAME.JIRA_SEARCH_ISSUE} value={filter?.value || ""} onChange={setFilter} />
       }
       pagination={{
         hasMore: hasNextPage,

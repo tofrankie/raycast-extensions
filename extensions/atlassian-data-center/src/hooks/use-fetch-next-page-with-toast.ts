@@ -15,13 +15,13 @@ export function useFetchNextPageWithToast<TFetchNextPage extends (options?: Fetc
   hasNextPage,
   isFetchingNextPage,
   fetchNextPage,
-  successMessage = "Loaded more",
+  successMessage,
 }: UseFetchNextPageWithToastOptions<TFetchNextPage>) {
   return useCallback(async () => {
     if (hasNextPage && !isFetchingNextPage) {
       try {
         await fetchNextPage();
-        showToast(Toast.Style.Success, successMessage);
+        if (successMessage) showToast(Toast.Style.Success, successMessage);
       } catch {
         // Error handling is done by React Query onError
       }

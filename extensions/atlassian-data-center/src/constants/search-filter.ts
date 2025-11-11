@@ -3,11 +3,11 @@ import { Icon } from "@raycast/api";
 
 import { COMMAND_NAME, PAGINATION_SIZE } from "@/constants";
 
-import type { SearchBarAccessoryItem, SearchBarAccessoryCommandName } from "@/types";
+import type { SearchFilterItem, SearchFilterCommandName } from "@/types";
 
 const SEVEN_DAY_AGO = dayjs().subtract(7, "day").format("YYYY-MM-DD");
 
-export const CONFLUENCE_SEARCH_CONTENT_FILTERS: SearchBarAccessoryItem[] = [
+export const CONFLUENCE_SEARCH_CONTENT_FILTERS: SearchFilterItem[] = [
   {
     value: "default",
     title: "All Contents",
@@ -121,7 +121,7 @@ export const CONFLUENCE_SEARCH_CONTENT_FILTERS: SearchBarAccessoryItem[] = [
   },
 ];
 
-export const CONFLUENCE_SEARCH_SPACE_FILTERS: SearchBarAccessoryItem[] = [
+export const CONFLUENCE_SEARCH_SPACE_FILTERS: SearchFilterItem[] = [
   {
     value: "default",
     title: "All Spaces",
@@ -152,7 +152,7 @@ export const CONFLUENCE_SEARCH_SPACE_FILTERS: SearchBarAccessoryItem[] = [
   },
 ];
 
-export const JIRA_SEARCH_ISSUE_FILTERS: SearchBarAccessoryItem[] = [
+export const JIRA_SEARCH_ISSUE_FILTERS: SearchFilterItem[] = [
   {
     value: "default",
     title: "All Issues",
@@ -269,8 +269,8 @@ export const JIRA_SEARCH_ISSUE_FILTERS: SearchBarAccessoryItem[] = [
   },
 ];
 
-export const SEARCH_BAR_ACCESSORY_CONFIGS = {
-  [COMMAND_NAME.CONFLUENCE_SEARCH_CONTENTS]: CONFLUENCE_SEARCH_CONTENT_FILTERS,
-  [COMMAND_NAME.CONFLUENCE_SEARCH_SPACES]: CONFLUENCE_SEARCH_SPACE_FILTERS,
-  [COMMAND_NAME.JIRA_SEARCH_ISSUES]: JIRA_SEARCH_ISSUE_FILTERS,
-} as const satisfies Record<SearchBarAccessoryCommandName, SearchBarAccessoryItem[]>;
+export const SEARCH_FILTER_CONFIGS = {
+  [COMMAND_NAME.CONFLUENCE_SEARCH_CONTENT]: CONFLUENCE_SEARCH_CONTENT_FILTERS,
+  [COMMAND_NAME.CONFLUENCE_SEARCH_SPACE]: CONFLUENCE_SEARCH_SPACE_FILTERS,
+  [COMMAND_NAME.JIRA_SEARCH_ISSUE]: JIRA_SEARCH_ISSUE_FILTERS,
+} as const satisfies Record<SearchFilterCommandName, SearchFilterItem[]>;

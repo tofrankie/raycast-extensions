@@ -58,9 +58,7 @@ export function useJiraNotificationsInfiniteQuery<TSelect = { list: ProcessedJir
   });
 }
 
-export function useMarkJiraNotificationAsReadMutation(
-  mutationOptions?: Partial<UseMutationOptions<void, Error, number>>,
-) {
+export function useMarkJiraNotificationAsReadMutation(options?: Partial<UseMutationOptions<void, Error, number>>) {
   const queryClient = useQueryClient();
 
   return useMutation<void, Error, number>({
@@ -68,13 +66,11 @@ export function useMarkJiraNotificationAsReadMutation(
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["jira-notification-view"] });
     },
-    ...mutationOptions,
+    ...options,
   });
 }
 
-export function useSetJiraNotificationStateMutation(
-  mutationOptions?: Partial<UseMutationOptions<void, Error, number>>,
-) {
+export function useSetJiraNotificationStateMutation(options?: Partial<UseMutationOptions<void, Error, number>>) {
   const queryClient = useQueryClient();
 
   return useMutation<void, Error, number>({
@@ -82,13 +78,11 @@ export function useSetJiraNotificationStateMutation(
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["jira-notification-view"] });
     },
-    ...mutationOptions,
+    ...options,
   });
 }
 
-export function useMarkJiraAllNotificationsAsReadMutation(
-  mutationOptions?: Partial<UseMutationOptions<void, Error, void>>,
-) {
+export function useMarkJiraAllNotificationsAsReadMutation(options?: Partial<UseMutationOptions<void, Error, void>>) {
   const queryClient = useQueryClient();
 
   return useMutation<void, Error, void>({
@@ -96,6 +90,6 @@ export function useMarkJiraAllNotificationsAsReadMutation(
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["jira-notification-view"] });
     },
-    ...mutationOptions,
+    ...options,
   });
 }

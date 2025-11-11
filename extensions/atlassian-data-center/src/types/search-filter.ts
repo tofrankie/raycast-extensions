@@ -1,12 +1,12 @@
 import { COMMAND_NAME } from "@/constants";
 import type { DropdownItemIcon } from "@/types";
 
-export type SearchBarAccessoryCommandName =
-  | typeof COMMAND_NAME.CONFLUENCE_SEARCH_CONTENTS
-  | typeof COMMAND_NAME.CONFLUENCE_SEARCH_SPACES
-  | typeof COMMAND_NAME.JIRA_SEARCH_ISSUES;
+export type SearchFilterCommandName =
+  | typeof COMMAND_NAME.CONFLUENCE_SEARCH_CONTENT
+  | typeof COMMAND_NAME.CONFLUENCE_SEARCH_SPACE
+  | typeof COMMAND_NAME.JIRA_SEARCH_ISSUE;
 
-export interface SearchBarAccessoryItem {
+export type SearchFilterItem = {
   value: string;
   title: string;
   icon: DropdownItemIcon;
@@ -17,9 +17,9 @@ export interface SearchBarAccessoryItem {
   orderBy?: string;
   transform?: (processedQuery: string, context?: { userInput: string; filter: SearchFilter }) => string;
   sectionTitle?: string | ((params: { fetchedCount: number; totalCount: number }) => string);
-}
+};
 
 export type SearchFilter = Pick<
-  SearchBarAccessoryItem,
+  SearchFilterItem,
   "value" | "query" | "autoQuery" | "logicOperator" | "orderBy" | "transform" | "sectionTitle"
 >;

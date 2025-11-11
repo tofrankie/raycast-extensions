@@ -1,6 +1,6 @@
 import { confluenceRequest, handleApiResponse, transformURL } from "@/utils";
-import { CONFLUENCE_API, COMMAND_NAME } from "@/constants";
-import type { ConfluenceSearchContentsResponse, ConfluenceSearchResponse, ConfluenceCurrentUser } from "@/types";
+import { CONFLUENCE_API } from "@/constants";
+import type { ConfluenceContentSearchResponse, ConfluenceSearchResponse, ConfluenceCurrentUser } from "@/types";
 
 type SearchContentParams = {
   cql: string;
@@ -8,11 +8,11 @@ type SearchContentParams = {
   offset: number;
 };
 
-export async function searchContents({
+export async function getConfluenceContents({
   cql,
   limit,
   offset,
-}: SearchContentParams): Promise<ConfluenceSearchContentsResponse> {
+}: SearchContentParams): Promise<ConfluenceContentSearchResponse> {
   const params = {
     cql,
     start: offset,
@@ -20,7 +20,7 @@ export async function searchContents({
     expand: "space,history.createdBy,history.lastUpdated,metadata.currentuser.favourited",
   };
 
-  const data = await confluenceRequest<ConfluenceSearchContentsResponse>({
+  const data = await confluenceRequest<ConfluenceContentSearchResponse>({
     method: "GET",
     url: CONFLUENCE_API.SEARCH_CONTENT,
     params,
@@ -28,7 +28,7 @@ export async function searchContents({
 
   return handleApiResponse({
     data,
-    fileName: COMMAND_NAME.CONFLUENCE_SEARCH_CONTENTS,
+    fileName: "confluence-contents",
     defaultValue: {
       results: [],
       start: 0,
@@ -50,7 +50,7 @@ type AddToFavoriteParams = {
   contentId: string;
 };
 
-export async function addToFavorite({ contentId }: AddToFavoriteParams): Promise<void> {
+export async function addConfluenceContentToFavorite({ contentId }: AddToFavoriteParams): Promise<void> {
   const url = transformURL(CONFLUENCE_API.CONTENT_FAVOURITE, { contentId });
   await confluenceRequest<void>({ method: "PUT", url });
 }
@@ -59,7 +59,7 @@ type RemoveFromFavoriteParams = {
   contentId: string;
 };
 
-export async function removeFromFavorite({ contentId }: RemoveFromFavoriteParams): Promise<void> {
+export async function removeConfluenceContentFromFavorite({ contentId }: RemoveFromFavoriteParams): Promise<void> {
   const url = transformURL(CONFLUENCE_API.CONTENT_FAVOURITE, { contentId });
   await confluenceRequest<void>({ method: "DELETE", url });
 }
@@ -70,7 +70,7 @@ type SearchUserParams = {
   offset: number;
 };
 
-export async function searchUsers({ cql, limit, offset }: SearchUserParams): Promise<ConfluenceSearchResponse> {
+export async function getConfluenceUsers({ cql, limit, offset }: SearchUserParams): Promise<ConfluenceSearchResponse> {
   const params = {
     cql,
     start: offset,
@@ -86,7 +86,7 @@ export async function searchUsers({ cql, limit, offset }: SearchUserParams): Pro
 
   return handleApiResponse({
     data,
-    fileName: COMMAND_NAME.CONFLUENCE_SEARCH_USERS,
+    fileName: "confluence-users",
     defaultValue: {
       results: [],
       start: 0,
@@ -110,7 +110,11 @@ type SearchSpaceParams = {
   offset: number;
 };
 
-export async function searchSpaces({ cql, limit, offset }: SearchSpaceParams): Promise<ConfluenceSearchResponse> {
+export async function getConfluenceSpaces({
+  cql,
+  limit,
+  offset,
+}: SearchSpaceParams): Promise<ConfluenceSearchResponse> {
   const params = {
     cql,
     start: offset,
@@ -126,7 +130,7 @@ export async function searchSpaces({ cql, limit, offset }: SearchSpaceParams): P
 
   return handleApiResponse({
     data,
-    fileName: COMMAND_NAME.CONFLUENCE_SEARCH_SPACES,
+    fileName: "confluence-spaces",
     defaultValue: {
       results: [],
       start: 0,

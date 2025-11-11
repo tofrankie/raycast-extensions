@@ -6,8 +6,8 @@ import {
   getJiraBoards,
   getJiraBoardSprints,
   getJiraBoardConfiguration,
-  getJiraBoardSprintIssues,
-  getJiraBoardIssues,
+  getJiraIssuesBySprint,
+  getJiraIssuesByBoard,
   processActiveSprint,
   processBoards,
   transformURL,
@@ -17,19 +17,19 @@ import {
 } from "@/utils";
 import type {
   InfiniteQueryOptions,
-  JiraBoardResponse,
-  JiraBoard,
+  JiraBoardsResponse,
   JiraBoardConfiguration,
-  JiraSprintResponse,
-  JiraSprint,
-  JiraKanbanBoardIssueResponse,
+  JiraSprintsResponse,
+  JiraBoardIssuesResponse,
   InfiniteQueryPageParam,
   ProcessedJiraKanbanBoardIssue,
   QueryOptions,
 } from "@/types";
 
-export function useJiraBoardsQuery<TSelect = JiraBoard[]>(options?: QueryOptions<JiraBoardResponse, TSelect>) {
-  return useQuery<JiraBoardResponse, Error, TSelect>({
+export function useJiraBoardsQuery<TSelect = JiraBoardsResponse["values"]>(
+  options?: QueryOptions<JiraBoardsResponse, TSelect>,
+) {
+  return useQuery<JiraBoardsResponse, Error, TSelect>({
     queryKey: ["jira-boards"],
     queryFn: getJiraBoards,
     select: (data) => processBoards(data) as TSelect,
@@ -55,11 +55,11 @@ export function useJiraBoardConfigurationQuery<TSelect = JiraBoardConfiguration>
   });
 }
 
-export function useJiraBoardActiveSprintQuery<TSelect = JiraSprint | null>(
+export function useJiraBoardActiveSprintQuery<TSelect = JiraSprintsResponse["values"][number] | null>(
   boardId: number,
-  options?: QueryOptions<JiraSprintResponse, TSelect>,
+  options?: QueryOptions<JiraSprintsResponse, TSelect>,
 ) {
-  return useQuery<JiraSprintResponse, Error, TSelect>({
+  return useQuery<JiraSprintsResponse, Error, TSelect>({
     queryKey: ["jira-board-sprints", boardId],
     queryFn: () => {
       const url = transformURL(JIRA_API.BOARD_SPRINT, { boardId });
@@ -71,12 +71,12 @@ export function useJiraBoardActiveSprintQuery<TSelect = JiraSprint | null>(
   });
 }
 
-export function useJiraBoardSprintIssuesQuery<TSelect = JiraKanbanBoardIssueResponse>(
+export function useJiraBoardSprintIssuesQuery<TSelect = JiraBoardIssuesResponse>(
   boardId: number,
   sprintId: number,
-  options?: QueryOptions<JiraKanbanBoardIssueResponse, TSelect>,
+  options?: QueryOptions<JiraBoardIssuesResponse, TSelect>,
 ) {
-  return useQuery<JiraKanbanBoardIssueResponse, Error, TSelect>({
+  return useQuery<JiraBoardIssuesResponse, Error, TSelect>({
     queryKey: ["jira-board-sprint-issues", boardId, sprintId],
     queryFn: () => {
       const selectedFieldIds = getSelectedFieldIds();
@@ -86,22 +86,23 @@ export function useJiraBoardSprintIssuesQuery<TSelect = JiraKanbanBoardIssueResp
         fields: [...JIRA_BOARD_ISSUE_FIELDS, ...selectedFieldIds],
         maxResults: 200,
       };
-      return getJiraBoardSprintIssues(url, params);
+      return getJiraIssuesBySprint(url, params);
     },
     ...options,
   });
 }
 
-export function useJiraKanbanBoardIssuesInfiniteQuery<
-  TSelect = { list: ProcessedJiraKanbanBoardIssue[]; total: number },
->(boardId: number, options?: InfiniteQueryOptions<JiraKanbanBoardIssueResponse, TSelect>) {
-  return useInfiniteQuery<JiraKanbanBoardIssueResponse, Error, TSelect, QueryKey, InfiniteQueryPageParam>({
+export function useJiraBoardIssuesInfiniteQuery<TSelect = { list: ProcessedJiraKanbanBoardIssue[]; total: number }>(
+  boardId: number,
+  options?: InfiniteQueryOptions<JiraBoardIssuesResponse, TSelect>,
+) {
+  return useInfiniteQuery<JiraBoardIssuesResponse, Error, TSelect, QueryKey, InfiniteQueryPageParam>({
     queryKey: ["jira-board-issues", { boardId, pageSize: PAGINATION_SIZE }],
     queryFn: async ({ pageParam }) => {
       const { offset, limit } = pageParam;
       const selectedFieldIds = getSelectedFieldIds();
       const url = transformURL(JIRA_API.BOARD_ISSUE, { boardId });
-      return getJiraBoardIssues(url, {
+      return getJiraIssuesByBoard(url, {
         expand: ["names"],
         offset,
         jql: "order by updated DESC, priority DESC, created DESC",

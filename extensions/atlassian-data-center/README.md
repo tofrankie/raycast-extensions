@@ -1,6 +1,6 @@
 # Atlassian Data Center
 
-A Raycast extension for Atlassian Data Center products, providing search capabilities for Confluence and Jira with CQL/JQL syntax support.
+A Raycast extension for Atlassian Data Center products to search and manage Confluence and Jira, with CQL/JQL syntax support.
 
 ## ⚙️ Setup Required
 
@@ -20,7 +20,7 @@ On first use, you'll need to provide:
 
 ### 📚 Confluence
 
-- **Search Contents** - Search Confluence pages, blog posts, comments, and attachments
+- **Search Contents** - Search Confluence contents, including pages, blog posts, comments, and attachments
 - **Search Spaces** - Search Confluence spaces
 - **Search Users** - Search Confluence users
 - **CQL Support** - Use [Confluence Query Language](https://developer.atlassian.com/server/confluence/rest/v1020/intro/#advanced-searching-using-cql) for advanced searches
@@ -29,8 +29,8 @@ On first use, you'll need to provide:
 ### 🐛 Jira
 
 - **Search Issues** - Search Jira issues
-- **Board View** - View active sprint issues on Jira board
-- **Worklog View** - View your Jira worklog
+- **Board View** - View Jira board
+- **Worklog View** - View Jira worklog
 - **Notification View** - View Jira notifications (requires [Notifications for Jira](https://marketplace.atlassian.com/apps/1217434/notifications-in-jira-desktop-and-icon-alerts) plugin on your Jira instance)
 - **Manage Fields** - Manage custom fields for Jira issue search
 - **JQL Support** - Use [Jira Query Language](https://confluence.atlassian.com/jiracoreserver/advanced-searching-939937709.html) for complex searches

@@ -3,28 +3,33 @@ import { useInfiniteQuery, useMutation, useQueryClient } from "@tanstack/react-q
 import type { InfiniteData, QueryKey } from "@tanstack/react-query";
 
 import { PAGINATION_SIZE } from "@/constants";
-import { searchContents, addToFavorite, removeFromFavorite, processConfluenceSearchContents } from "@/utils";
+import {
+  getConfluenceContents,
+  addConfluenceContentToFavorite,
+  removeConfluenceContentFromFavorite,
+  processConfluenceContentSearchResult,
+} from "@/utils";
 import type {
-  ConfluenceSearchContentsResponse,
+  ConfluenceContentSearchResponse,
   InfiniteQueryOptions,
   InfiniteQueryPageParam,
   ProcessedConfluenceContent,
 } from "@/types";
 
-export const useConfluenceSearchContentsInfiniteQuery = <
+export const useConfluenceContentsSearchInfiniteQuery = <
   TSelect = { list: ProcessedConfluenceContent[]; total: number },
 >(
   cql: string,
-  options?: InfiniteQueryOptions<ConfluenceSearchContentsResponse, TSelect>,
+  options?: InfiniteQueryOptions<ConfluenceContentSearchResponse, TSelect>,
 ) => {
-  return useInfiniteQuery<ConfluenceSearchContentsResponse, Error, TSelect, QueryKey, InfiniteQueryPageParam>({
-    queryKey: ["confluence-search-contents", { cql, pageSize: PAGINATION_SIZE }],
+  return useInfiniteQuery<ConfluenceContentSearchResponse, Error, TSelect, QueryKey, InfiniteQueryPageParam>({
+    queryKey: ["confluence-search-content", { cql, pageSize: PAGINATION_SIZE }],
     queryFn: async ({ pageParam }) => {
       const { offset, limit } = pageParam;
-      return await searchContents({ cql, limit, offset });
+      return await getConfluenceContents({ cql, limit, offset });
     },
     select: (data) => {
-      const list = data.pages.flatMap((page) => processConfluenceSearchContents(page.results));
+      const list = data.pages.flatMap((page) => processConfluenceContentSearchResult(page.results));
       const total = data.pages[0]?.totalCount || data.pages[0]?.totalSize || 0;
 
       return {
@@ -44,19 +49,19 @@ export const useConfluenceSearchContentsInfiniteQuery = <
   });
 };
 
-export const useToggleFavorite = () => {
+export const useToggleConfluenceContentFavorite = () => {
   const queryClient = useQueryClient();
 
   return useMutation({
     mutationFn: async ({ contentId, isFavorited }: { contentId: string; isFavorited: boolean }) => {
       if (isFavorited) {
-        await removeFromFavorite({ contentId });
+        await removeConfluenceContentFromFavorite({ contentId });
       } else {
-        await addToFavorite({ contentId });
+        await addConfluenceContentToFavorite({ contentId });
       }
     },
     onMutate: async ({ contentId, isFavorited }) => {
-      const queryKey = ["confluence-search-contents"];
+      const queryKey = ["confluence-search-content"];
 
       // Cancel all ongoing queries to avoid conflicts
       await queryClient.cancelQueries({ queryKey });
@@ -65,7 +70,7 @@ export const useToggleFavorite = () => {
       const previousData = queryClient.getQueriesData({ queryKey });
 
       // Optimistically update all related query caches
-      queryClient.setQueriesData({ queryKey }, (old: InfiniteData<ConfluenceSearchContentsResponse> | undefined) => {
+      queryClient.setQueriesData({ queryKey }, (old: InfiniteData<ConfluenceContentSearchResponse> | undefined) => {
         if (!old) return old;
 
         return {
@@ -108,7 +113,7 @@ export const useToggleFavorite = () => {
     },
     onSettled: () => {
       // Re-fetch data to ensure consistency regardless of success or failure
-      queryClient.invalidateQueries({ queryKey: ["confluence-search-contents"] });
+      queryClient.invalidateQueries({ queryKey: ["confluence-search-content"] });
     },
   });
 };

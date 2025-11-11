@@ -4,7 +4,7 @@ import { List, ActionPanel, Action, Icon } from "@raycast/api";
 import { withQuery, DebugActions } from "@/components";
 import { AVATAR_TYPE, PAGINATION_SIZE, QUERY_TYPE } from "@/constants";
 import {
-  useConfluenceSearchUsersInfiniteQuery,
+  useConfluenceUsersSearchInfiniteQuery,
   useAvatar,
   useConfluenceCurrentUser,
   useRefetchWithToast,
@@ -50,7 +50,7 @@ function ConfluenceSearchUsers() {
     isLoading,
     isSuccess,
     refetch,
-  } = useConfluenceSearchUsersInfiniteQuery(cql, {
+  } = useConfluenceUsersSearchInfiniteQuery(cql, {
     enabled: !!cql,
     meta: { errorMessage: "Failed to Search User" },
   });

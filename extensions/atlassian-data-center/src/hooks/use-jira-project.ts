@@ -1,12 +1,14 @@
 import { useQuery } from "@tanstack/react-query";
 
-import { getJiraProject } from "@/utils";
+import { getJiraProjects } from "@/utils";
 import type { JiraIssueProject, QueryOptions } from "@/types";
 
-export function useJiraProjectQuery<TSelect = JiraIssueProject[]>(options?: QueryOptions<JiraIssueProject[], TSelect>) {
+export function useJiraProjectsQuery<TSelect = JiraIssueProject[]>(
+  options?: QueryOptions<JiraIssueProject[], TSelect>,
+) {
   return useQuery<JiraIssueProject[], Error, TSelect>({
-    queryKey: ["jira-project"],
-    queryFn: getJiraProject,
+    queryKey: ["jira-projects"],
+    queryFn: getJiraProjects,
     staleTime: Infinity,
     gcTime: Infinity,
     ...options,

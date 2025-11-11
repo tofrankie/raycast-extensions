@@ -59,7 +59,7 @@ function buildSubtitle(
   issue: JiraSearchIssue,
   selectedFieldValue?: Record<string, JiraIssueUser>,
   fieldsNameMap?: Record<string, string>,
-): ListItemSubtitle {
+): NonNullable<ListItemSubtitle> {
   const { key: issueKey, fields } = issue;
   const assignee = fields.assignee?.displayName || "Unassigned";
   const reporter = fields.reporter?.displayName || null;
@@ -91,7 +91,7 @@ function buildSubtitle(
   };
 }
 
-function buildAccessories(issue: JiraSearchIssue): ListItemAccessories {
+function buildAccessories(issue: JiraSearchIssue): NonNullable<ListItemAccessories> {
   const { fields } = issue;
   const created = fields.created ? new Date(fields.created) : null;
   const updated = fields.updated ? new Date(fields.updated) : null;

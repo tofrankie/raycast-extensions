@@ -1,9 +1,9 @@
 import dayjs from "dayjs";
 import { getIssueTypeIcon, getJiraIssueUrl } from "@/utils";
 import { WORKING_HOURS_PER_DAY, JIRA_WORKLOG_RANGE } from "@/constants";
-import type { JiraWorklog, ListItemAccessories, ProcessedWorklog, WorklogGroup } from "@/types";
+import type { JiraWorklog, JiraWorklogsResponse, ListItemAccessories, ProcessedWorklog, WorklogGroup } from "@/types";
 
-export function processJiraWorklog(worklogs: JiraWorklog[]): WorklogGroup[] {
+export function processJiraWorklog(worklogs: JiraWorklogsResponse): WorklogGroup[] {
   // Sort all worklogs by started time first
   const sortedWorklogs = worklogs.sort((a, b) => dayjs(a.started).valueOf() - dayjs(b.started).valueOf());
 

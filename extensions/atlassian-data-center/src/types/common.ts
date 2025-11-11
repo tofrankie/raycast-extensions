@@ -1,6 +1,5 @@
 import { APP_TYPE, AVATAR_TYPE } from "@/constants";
-
-export type ValueOf<T> = T[keyof T];
+import type { ValueOf } from "type-fest";
 
 export type AppType = ValueOf<typeof APP_TYPE>;
 

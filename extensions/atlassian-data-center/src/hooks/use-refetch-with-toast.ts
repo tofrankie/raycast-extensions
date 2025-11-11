@@ -14,7 +14,7 @@ export function useRefetchWithToast<TRefetch extends (options?: RefetchOptions) 
   return useCallback(async () => {
     try {
       await refetch();
-      showToast(Toast.Style.Success, successMessage);
+      if (successMessage) showToast(Toast.Style.Success, successMessage);
     } catch {
       // Error handling is done by React Query onError
     }

@@ -8,13 +8,17 @@ import {
   CONFLUENCE_TYPE_ICON,
   CONFLUENCE_TYPE_LABEL,
 } from "@/constants";
-import type { ConfluenceSearchContentResult, ConfluenceIconType, ProcessedConfluenceContent } from "@/types";
+import type { ConfluenceContentSearchResponse, ConfluenceIconType, ProcessedConfluenceContent } from "@/types";
 
-export function processConfluenceSearchContents(items: ConfluenceSearchContentResult[]): ProcessedConfluenceContent[] {
-  return items.map((item) => processConfluenceSearchContentItem(item));
+type ConfluenceContentSearchResult = ConfluenceContentSearchResponse["results"][number];
+
+export function processConfluenceContentSearchResult(
+  items: ConfluenceContentSearchResult[],
+): ProcessedConfluenceContent[] {
+  return items.map((item) => processItem(item));
 }
 
-function processConfluenceSearchContentItem(item: ConfluenceSearchContentResult): ProcessedConfluenceContent {
+function processItem(item: ConfluenceContentSearchResult): ProcessedConfluenceContent {
   const id = item.id;
   const title = { value: item.title, tooltip: `Title: ${item.title}` };
   const spaceName = item.space?.name || "";

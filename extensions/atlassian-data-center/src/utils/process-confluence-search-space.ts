@@ -8,15 +8,15 @@ import {
   DEFAULT_AVATAR,
   CONFLUENCE_BASE_URL,
 } from "@/constants";
-import type { ConfluenceSearchResult, ConfluenceSpaceType, ProcessedConfluenceSpace } from "@/types";
+import type { ConfluenceSearchResponse, ConfluenceSpaceType, ProcessedConfluenceSpace } from "@/types";
 
-export function processConfluenceSearchSpaces(results: ConfluenceSearchResult[]): ProcessedConfluenceSpace[] {
-  return results
-    .filter((result) => result.space && result.entityType === "space")
-    .map((result) => processConfluenceSearchSpaceItem(result));
+type ConfluenceSearchResult = ConfluenceSearchResponse["results"][number];
+
+export function processConfluenceSpaceSearchResult(results: ConfluenceSearchResult[]): ProcessedConfluenceSpace[] {
+  return results.map((result) => processItem(result));
 }
 
-function processConfluenceSearchSpaceItem(result: ConfluenceSearchResult): ProcessedConfluenceSpace {
+function processItem(result: ConfluenceSearchResult): ProcessedConfluenceSpace {
   const space = result.space!;
 
   const spaceKey = space.key || "";

@@ -3,7 +3,7 @@
   "name": "atlassian-data-center",
   "version": "1.0.0",
   "title": "Atlassian Data Center",
-  "description": "Search Confluence and Jira Data Center with CQL/JQL syntax support",
+  "description": "Search and manage Confluence and Jira Data Center",
   "icon": "logo-atlassian.png",
   "author": "tofrankie",
   "homepage": "https://github.com/tofrankie/raycast-atlassian-data-center",
@@ -52,6 +52,7 @@
     "@types/react": "19.0.10",
     "eslint": "^9.22.0",
     "prettier": "^3.5.3",
+    "type-fest": "^5.2.0",
     "typescript": "^5.8.2",
     "vitest": "^3.2.4"
   },
@@ -68,7 +69,7 @@
       "type": "password",
       "name": "confluencePAT",
       "title": "Confluence PAT",
-      "description": "Your Confluence Personal Access Token for API authentication. Create it from: Profile → Personal Access Tokens → Create token",
+      "description": "Personal Access Token for Confluence API authentication. Create it from: Profile → Personal Access Tokens → Create token",
       "required": true,
       "placeholder": "Your Confluence Personal Access Token"
     },
@@ -84,7 +85,7 @@
       "type": "password",
       "name": "jiraPAT",
       "title": "Jira PAT",
-      "description": "Your Jira Personal Access Token for API authentication. Create it from: Profile → Personal Access Tokens → Create token",
+      "description": "Personal Access Token for Jira API authentication. Create it from: Profile → Personal Access Tokens → Create token",
       "required": true,
       "placeholder": "Your Jira Personal Access Token"
     },
@@ -101,7 +102,7 @@
       "type": "textfield",
       "name": "paginationSize",
       "title": "Results per Page",
-      "description": "Number of search results per page (default: 20)",
+      "description": "Number of search results per page. Default: 20",
       "required": true,
       "default": "20",
       "placeholder": "20"
@@ -110,7 +111,7 @@
       "type": "textfield",
       "name": "jiraWorkingHoursPerDay",
       "title": "Working Hours per Day",
-      "description": "Working hours per day for worklog progress calculation (default: 8h, max 1 decimal place)",
+      "description": "Working hours per day for worklog progress calculation. Default: 8h (max 1 decimal place)",
       "required": true,
       "default": "8",
       "placeholder": "8"
@@ -119,7 +120,7 @@
       "type": "textfield",
       "name": "jiraWorkingDaysPerWeek",
       "title": "Working Days per Week",
-      "description": "Working days per week for worklog progress calculation (default: 5)",
+      "description": "Working days per week for worklog progress calculation. Default: 5",
       "required": true,
       "default": "5",
       "placeholder": "5"
@@ -136,15 +137,15 @@
   ],
   "commands": [
     {
-      "name": "confluence-search-contents",
+      "name": "confluence-search-content",
       "title": "Search Contents",
       "subtitle": "Confluence Data Center",
-      "description": "Search Confluence pages, blog posts, comments, and attachments",
+      "description": "Search Confluence contents, including pages, blog posts, comments, and attachments",
       "mode": "view",
       "icon": "logo-confluence.png"
     },
     {
-      "name": "confluence-search-users",
+      "name": "confluence-search-user",
       "title": "Search Users",
       "subtitle": "Confluence Data Center",
       "description": "Search Confluence users",
@@ -152,7 +153,7 @@
       "icon": "logo-confluence.png"
     },
     {
-      "name": "confluence-search-spaces",
+      "name": "confluence-search-space",
       "title": "Search Spaces",
       "subtitle": "Confluence Data Center",
       "description": "Search Confluence spaces",
@@ -160,7 +161,7 @@
       "icon": "logo-confluence.png"
     },
     {
-      "name": "jira-search-issues",
+      "name": "jira-search-issue",
       "title": "Search Issues",
       "subtitle": "Jira Data Center",
       "description": "Search Jira issues",
@@ -171,7 +172,7 @@
       "name": "jira-board-view",
       "title": "Board View",
       "subtitle": "Jira Data Center",
-      "description": "View active sprint issues on Jira board",
+      "description": "View Jira board",
       "mode": "view",
       "icon": "logo-jira.png"
     },
@@ -179,7 +180,7 @@
       "name": "jira-worklog-view",
       "title": "Worklog View",
       "subtitle": "Jira Data Center",
-      "description": "View your Jira worklog",
+      "description": "View Jira worklog",
       "mode": "view",
       "icon": "logo-jira.png"
     },
@@ -192,7 +193,7 @@
       "icon": "logo-jira.png"
     },
     {
-      "name": "jira-manage-fields",
+      "name": "jira-manage-field",
       "title": "Manage Fields",
       "subtitle": "Jira Data Center",
       "description": "Manage custom fields for Jira issue search",

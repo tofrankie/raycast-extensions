@@ -11,8 +11,6 @@ export const avatarCache = createCache();
 
 export const jiraSelectedFieldsCache = createCache();
 
-export const jiraCurrentUserCache = createCache();
-
 export const confluenceCurrentUserCache = createCache();
 
 export async function clearAllCacheWithToast() {

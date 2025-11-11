@@ -1,6 +1,8 @@
 import type { ProcessedWorklog } from "@/types";
 
-export interface JiraWorklog {
+export type JiraWorklogsResponse = JiraWorklog[];
+
+export type JiraWorklog = {
   /** Tempo Worklog ID, e.g. `12345` */
   originId: number;
   /** Origin task ID (Jira Issue ID), e.g. `12345` */
@@ -78,9 +80,9 @@ export interface JiraWorklog {
     /** Issue versions, e.g. `[]` */
     versions: unknown[];
   };
-}
+};
 
-export interface JiraWorklogCreateParams extends Record<string, unknown> {
+export type JiraWorklogCreateParams = {
   attributes?: Record<string, unknown>;
   billableSeconds?: string;
   worker: string;
@@ -91,9 +93,9 @@ export interface JiraWorklogCreateParams extends Record<string, unknown> {
   remainingEstimate: number | null;
   endDate: string | null;
   includeNonWorkingDays: boolean;
-}
+};
 
-export interface JiraWorklogUpdateParams extends Record<string, unknown> {
+export type JiraWorklogUpdateParams = {
   originTaskId: string;
   originId: number;
   started: string;
@@ -101,20 +103,13 @@ export interface JiraWorklogUpdateParams extends Record<string, unknown> {
   remainingEstimate: number | null;
   endDate: string | null;
   includeNonWorkingDays: boolean;
-}
+};
 
-export interface JiraWorklogFormData {
-  date: Date | null;
-  timeSpent: string;
-  comment: string;
-  remainingEstimate: string;
-}
-
-export interface WorklogGroup {
+export type WorklogGroup = {
   date: string;
   totalTimeSpent: string;
   totalTimeSpentSeconds: number;
   items: ProcessedWorklog[];
   title: string;
   subtitle: string;
-}
+};
