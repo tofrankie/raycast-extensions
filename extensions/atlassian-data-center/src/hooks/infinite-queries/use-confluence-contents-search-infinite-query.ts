@@ -1,21 +1,53 @@
+import { useInfiniteQuery } from "@tanstack/react-query";
 import { Icon, Image } from "@raycast/api";
 
-import { avatarCache } from "@/utils";
-import {
-  CONFLUENCE_BASE_URL,
-  CONFLUENCE_CONTENT_TYPE,
-  DEFAULT_AVATAR,
-  CONFLUENCE_TYPE_ICON,
-  CONFLUENCE_TYPE_LABEL,
-} from "@/constants";
-import type { ConfluenceContentSearchResponse, ConfluenceIconType, ProcessedConfluenceContent } from "@/types";
+import { PAGINATION_SIZE } from "@/constants";
+import { getConfluenceContents } from "@/utils/confluence-request";
+import { getAvatarPath } from "@/utils/avatar";
+import { CONFLUENCE_BASE_URL, CONFLUENCE_CONTENT_TYPE, CONFLUENCE_TYPE_ICON, CONFLUENCE_TYPE_LABEL } from "@/constants";
+import type {
+  ConfluenceContentSearchResponse,
+  ConfluenceIconType,
+  ProcessedConfluenceContent,
+  HookInfiniteQueryOptions,
+} from "@/types";
 
 type ConfluenceContentSearchResult = ConfluenceContentSearchResponse["results"][number];
 
-export function processConfluenceContentSearchResult(
-  items: ConfluenceContentSearchResult[],
-): ProcessedConfluenceContent[] {
-  return items.map((item) => processItem(item));
+export const useConfluenceContentsSearchInfiniteQuery = (
+  cql: string,
+  queryOptions?: HookInfiniteQueryOptions<
+    ConfluenceContentSearchResponse,
+    { list: ProcessedConfluenceContent[]; total: number },
+    readonly [{ scope: "confluence"; entity: "search"; type: "content"; cql: string }]
+  >,
+) => {
+  return useInfiniteQuery({
+    queryKey: [{ scope: "confluence", entity: "search", type: "content", cql }],
+    queryFn: async ({ queryKey, pageParam }) => {
+      const [{ cql: query }] = queryKey;
+      const { offset, limit } = pageParam;
+      return await getConfluenceContents({ cql: query, limit, offset });
+    },
+    initialPageParam: { offset: 0, limit: PAGINATION_SIZE },
+    getNextPageParam: (lastPage, allPages) => {
+      const hasNextLink = !!lastPage._links?.next;
+      if (hasNextLink) {
+        return { offset: allPages.length * PAGINATION_SIZE, limit: PAGINATION_SIZE };
+      }
+      return undefined;
+    },
+    select: (data) => {
+      const list = data.pages.flatMap((page) => processList(page.results));
+      const total = data.pages[0]?.totalCount ?? data.pages[0]?.totalSize ?? 0;
+      return { list, total };
+    },
+    ...queryOptions,
+  });
+};
+
+function processList(results: ConfluenceContentSearchResult[]): ProcessedConfluenceContent[] {
+  return results.map((item) => processItem(item));
 }
 
 function processItem(item: ConfluenceContentSearchResult): ProcessedConfluenceContent {
@@ -46,7 +78,7 @@ function processItem(item: ConfluenceContentSearchResult): ProcessedConfluenceCo
 
   const creatorAvatarUrl = `${baseUrl}${item.history.createdBy.profilePicture.path}`;
   const creatorAvatarCacheKey = creatorUserKey;
-  const creatorAvatar = (creatorAvatarCacheKey && avatarCache.get(creatorAvatarCacheKey)) ?? DEFAULT_AVATAR;
+  const creatorAvatar = getAvatarPath(creatorAvatarCacheKey);
 
   const isFavourited = item.metadata.currentuser.favourited?.isFavourite ?? false;
   const favouritedAt = item.metadata.currentuser.favourited?.favouritedDate

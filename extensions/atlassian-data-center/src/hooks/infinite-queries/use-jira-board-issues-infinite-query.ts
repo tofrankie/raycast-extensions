@@ -1,18 +1,78 @@
-import { getIssueTypeIcon, getJiraIssueEditUrl, getJiraIssueUrl, buildPriorityAndStatusAccessories } from "@/utils";
+import { useInfiniteQuery } from "@tanstack/react-query";
+
+import { JIRA_API, PAGINATION_SIZE, JIRA_SEARCH_ISSUE_FIELDS } from "@/constants";
+import {
+  getJiraIssuesByBoard,
+  transformURL,
+  getIssueTypeIcon,
+  getJiraIssueEditUrl,
+  getJiraIssueUrl,
+  buildPriorityAndStatusAccessories,
+} from "@/utils";
+import { useJiraSelectedFieldsCachedState } from "@/hooks/use-cache";
 import type {
-  JiraSearchIssue,
-  JiraIssueUser,
-  ProcessedJiraIssue,
+  JiraBoardIssuesResponse,
+  ProcessedJiraKanbanBoardIssue,
+  HookInfiniteQueryOptions,
+  JiraBoardIssue,
   ListItemAccessories,
   ListItemSubtitle,
   JiraField,
+  JiraIssueUser,
 } from "@/types";
 
-export function processJiraSearchIssue(
-  issue: JiraSearchIssue,
+export function useJiraBoardIssuesInfiniteQuery(
+  boardId: number,
+  queryOptions?: HookInfiniteQueryOptions<
+    JiraBoardIssuesResponse,
+    { list: ProcessedJiraKanbanBoardIssue[]; total: number },
+    readonly [{ scope: "jira"; entity: "board"; boardId: number; subEntity: "issues"; selectedFieldIds: string[] }]
+  >,
+) {
+  const { fields: selectedFields, fieldIds: selectedFieldIds } = useJiraSelectedFieldsCachedState();
+
+  return useInfiniteQuery({
+    queryKey: [{ scope: "jira", entity: "board", boardId, subEntity: "issues", selectedFieldIds }],
+    queryFn: async ({ queryKey, pageParam }) => {
+      const [{ boardId: id, selectedFieldIds: fieldIds }] = queryKey;
+      const { offset, limit } = pageParam;
+      const url = transformURL(JIRA_API.BOARD_ISSUE, { boardId: id });
+      return getJiraIssuesByBoard(url, {
+        expand: ["names"],
+        offset,
+        jql: "order by updated DESC, priority DESC, created DESC",
+        limit,
+        fields: [...JIRA_SEARCH_ISSUE_FIELDS, ...fieldIds],
+      });
+    },
+    initialPageParam: { offset: 0, limit: PAGINATION_SIZE },
+    getNextPageParam: (lastPage) => {
+      if (lastPage.startAt + lastPage.issues.length < lastPage.total) {
+        return { offset: lastPage.startAt + lastPage.issues.length, limit: PAGINATION_SIZE };
+      }
+      return undefined;
+    },
+    select: (data) => {
+      const allIssues = data.pages.flatMap((page) => page.issues);
+      const fieldsNameMap = data.pages[0]?.names;
+      const processedIssues: ProcessedJiraKanbanBoardIssue[] = allIssues.map((issue) =>
+        processItem(issue, selectedFields, fieldsNameMap),
+      );
+
+      return {
+        list: processedIssues,
+        total: data.pages[0]?.total ?? 0,
+      };
+    },
+    ...queryOptions,
+  });
+}
+
+function processItem(
+  issue: JiraBoardIssue,
   selectedFields: JiraField[],
   fieldsNameMap?: Record<string, string>,
-): ProcessedJiraIssue {
+): ProcessedJiraKanbanBoardIssue {
   const { fields, key, id } = issue;
 
   const summary = fields.summary;
@@ -52,11 +112,12 @@ export function processJiraSearchIssue(
     accessories,
     url,
     editUrl,
+    keywords: [],
   };
 }
 
 function buildSubtitle(
-  issue: JiraSearchIssue,
+  issue: JiraBoardIssue,
   selectedFieldValue?: Record<string, JiraIssueUser>,
   fieldsNameMap?: Record<string, string>,
 ): NonNullable<ListItemSubtitle> {
@@ -91,7 +152,7 @@ function buildSubtitle(
   };
 }
 
-function buildAccessories(issue: JiraSearchIssue): NonNullable<ListItemAccessories> {
+function buildAccessories(issue: JiraBoardIssue): NonNullable<ListItemAccessories> {
   const { fields } = issue;
   const created = fields.created ? new Date(fields.created) : null;
   const updated = fields.updated ? new Date(fields.updated) : null;

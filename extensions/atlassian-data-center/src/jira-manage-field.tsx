@@ -1,9 +1,8 @@
-import { useState, useEffect, useMemo } from "react";
+import { useState, useMemo } from "react";
 import { List, ActionPanel, Action, Icon } from "@raycast/api";
 
-import { withQuery, DebugActions } from "@/components";
-import { useJiraFieldsQuery, useRefetchWithToast } from "@/hooks";
-import { getSelectedFields, addSelectedField, removeSelectedField } from "@/utils";
+import { withQuery, CacheActions } from "@/components";
+import { useJiraFieldsQuery, useRefetchWithToast, useJiraSelectedFieldsCachedState } from "@/hooks";
 import type { JiraField, ProcessedJiraField } from "@/types";
 
 const EMPTY_FIELDS: ProcessedJiraField[] = [];
@@ -12,7 +11,11 @@ export default withQuery(JiraManageFields);
 
 function JiraManageFields() {
   const [searchText, setSearchText] = useState("");
-  const [addedFields, setAddedFields] = useState<JiraField[]>([]);
+  const {
+    fields: selectedFields,
+    addField: addSelectedField,
+    removeField: removeSelectedField,
+  } = useJiraSelectedFieldsCachedState();
 
   const {
     data = EMPTY_FIELDS,
@@ -24,10 +27,6 @@ function JiraManageFields() {
   });
 
   const refetchWithToast = useRefetchWithToast({ refetch });
-
-  useEffect(() => {
-    setAddedFields(getSelectedFields());
-  }, []);
 
   const { addedFieldsFiltered, systemFields, customFields } = useMemo(() => {
     const trimmedText = searchText.trim();
@@ -43,7 +42,7 @@ function JiraManageFields() {
       return false;
     });
 
-    const addedFieldIds = addedFields.map((item) => item.id);
+    const addedFieldIds = selectedFields.map((item) => item.id);
     const addedFieldsFiltered = filteredFields.filter((item) => addedFieldIds.includes(item.id));
 
     return {
@@ -51,7 +50,7 @@ function JiraManageFields() {
       systemFields: filteredFields.filter((item) => !item.custom),
       customFields: filteredFields.filter((item) => item.custom),
     };
-  }, [data, searchText, addedFields]);
+  }, [data, searchText, selectedFields]);
 
   const noFieldsAvailable = isSuccess && !data.length;
 
@@ -64,11 +63,10 @@ function JiraManageFields() {
     !customFields.length;
 
   const handleToggleField = (field: ProcessedJiraField) => {
-    const isAdded = addedFields.some((item) => item.id === field.id);
+    const isAdded = selectedFields.some((item) => item.id === field.id);
 
     if (isAdded) {
       removeSelectedField(field.id);
-      setAddedFields(addedFields.filter((item) => item.id !== field.id));
     } else {
       const jiraField: JiraField = {
         id: field.id,
@@ -81,7 +79,6 @@ function JiraManageFields() {
         clauseNames: [field.id],
       };
       addSelectedField(jiraField);
-      setAddedFields([...addedFields, jiraField]);
     }
   };
 
@@ -136,7 +133,7 @@ function JiraManageFields() {
                           shortcut={{ modifiers: ["cmd"], key: "r" }}
                           onAction={refetchWithToast}
                         />
-                        <DebugActions />
+                        <CacheActions />
                       </ActionPanel>
                     }
                   />
@@ -149,7 +146,7 @@ function JiraManageFields() {
             <List.Section title={`Custom Fields (${customFields.length})`}>
               {customFields.map((item) => {
                 const accessories = item.accessories;
-                const isAdded = addedFields.some((i) => i.id === item.id);
+                const isAdded = selectedFields.some((i) => i.id === item.id);
                 const isUserFieldItem = item.schema?.type === "user";
                 const updatedAccessories = isAdded
                   ? [
@@ -184,7 +181,7 @@ function JiraManageFields() {
                           shortcut={{ modifiers: ["cmd"], key: "r" }}
                           onAction={refetchWithToast}
                         />
-                        <DebugActions />
+                        <CacheActions />
                       </ActionPanel>
                     }
                   />
@@ -205,7 +202,7 @@ function JiraManageFields() {
                   actions={
                     <ActionPanel>
                       <Action.CopyToClipboard title="Copy Field ID" content={item.id} />
-                      <DebugActions />
+                      <CacheActions />
                     </ActionPanel>
                   }
                 />

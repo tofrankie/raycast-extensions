@@ -1,7 +1,7 @@
 import { useState, useMemo, useEffect } from "react";
 import { List, ActionPanel, Action, Icon, Color } from "@raycast/api";
 
-import { SearchFilter, withQuery, DebugActions } from "@/components";
+import { SearchFilter, withQuery, CacheActions } from "@/components";
 import { JiraIssueTransitionForm, JiraWorklogForm } from "@/pages";
 import { COMMAND_NAME, PAGINATION_SIZE, QUERY_TYPE, JIRA_SEARCH_ISSUE_FILTERS } from "@/constants";
 import JiraNotificationView from "@/jira-notification-view";
@@ -43,7 +43,6 @@ function JiraSearchIssues() {
     isFetched: isJiraProjectFetched,
     error: jiraProjectError,
   } = useJiraProjectsQuery({
-    select: (list) => list.map((item) => item.key),
     meta: { errorMessage: "Failed to Load Project" },
   });
 
@@ -281,7 +280,7 @@ function JiraSearchIssues() {
                       shortcut={{ modifiers: ["cmd"], key: "r" }}
                       onAction={refetchWithToast}
                     />
-                    <DebugActions />
+                    <CacheActions />
                   </ActionPanel>
                 }
               />

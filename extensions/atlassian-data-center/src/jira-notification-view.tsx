@@ -3,7 +3,7 @@ import { List, ActionPanel, Action, Icon, showToast, Toast } from "@raycast/api"
 import { showFailureToast } from "@raycast/utils";
 import dayjs from "dayjs";
 
-import { withQuery, DebugActions } from "@/components";
+import { withQuery, CacheActions } from "@/components";
 import { PAGINATION_SIZE, AVATAR_TYPE } from "@/constants";
 import {
   useJiraNotificationsInfiniteQuery,
@@ -16,7 +16,6 @@ import {
   useFetchNextPageWithToast,
 } from "@/hooks";
 import type { ProcessedJiraNotification } from "@/types";
-import { avatarExtractors } from "@/utils";
 
 const EMPTY_INFINITE_DATA = { list: [], total: 0 };
 
@@ -75,10 +74,13 @@ function JiraNotificationView() {
     },
   });
 
-  useAvatar({
+  useAvatar<ProcessedJiraNotification>({
     items: data.list,
     avatarType: AVATAR_TYPE.JIRA_NOTIFICATION_USER,
-    extractAvatarData: avatarExtractors.jiraNotificationUser,
+    collectAvatars: (items) =>
+      items
+        .filter((item) => item.actionMakerAvatarUrl && item.actionMakerAvatarCacheKey)
+        .map((item) => ({ url: item.actionMakerAvatarUrl, key: item.actionMakerAvatarCacheKey! })),
   });
 
   const fetchNextPageWithToast = useFetchNextPageWithToast({
@@ -274,7 +276,7 @@ function NotificationItem({
             onAction={onRefetch}
             shortcut={{ modifiers: ["cmd"], key: "r" }}
           />
-          <DebugActions />
+          <CacheActions />
         </ActionPanel>
       }
     />

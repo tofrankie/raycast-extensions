@@ -1,7 +1,7 @@
 import { useState, useMemo } from "react";
 import { List, ActionPanel, Action, Icon } from "@raycast/api";
 
-import { withQuery, DebugActions } from "@/components";
+import { withQuery, CacheActions } from "@/components";
 import { JiraWorklogForm } from "@/pages";
 import { copyToClipboardWithToast } from "@/utils";
 import { JIRA_WORKLOG_RANGE } from "@/constants";
@@ -117,7 +117,7 @@ function JiraWorklogView() {
                       shortcut={{ modifiers: ["cmd"], key: "r" }}
                       onAction={refetchWithToast}
                     />
-                    <DebugActions />
+                    <CacheActions />
                   </ActionPanel>
                 }
               />

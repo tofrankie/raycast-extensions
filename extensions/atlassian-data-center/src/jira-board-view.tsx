@@ -1,7 +1,7 @@
 import { useMemo, useEffect } from "react";
 import { List, ActionPanel, Action, Icon, showToast, Toast } from "@raycast/api";
 
-import { withQuery, DebugActions } from "@/components";
+import { withQuery, CacheActions } from "@/components";
 import { JiraIssueTransitionForm } from "@/pages";
 import {
   useJiraBoardsQuery,
@@ -13,7 +13,7 @@ import {
   useFetchNextPageWithToast,
   useRefetchWithToast,
 } from "@/hooks";
-import { processAndGroupSprintIssues } from "@/utils";
+import { groupSprintIssuesByColumn } from "@/utils";
 import { JIRA_BOARD_TYPE, PAGINATION_SIZE } from "@/constants";
 import type { ProcessedJiraKanbanBoardIssue } from "@/types";
 
@@ -98,10 +98,10 @@ function JiraBoardView() {
   }, [sprint, sprintId]);
 
   const groupedIssues = useMemo(() => {
-    if (!boardConfiguration?.columnConfig.columns || !sprintIssues?.issues) {
+    if (!boardConfiguration?.columnConfig.columns || !sprintIssues) {
       return {};
     }
-    return processAndGroupSprintIssues(sprintIssues.issues, boardConfiguration);
+    return groupSprintIssuesByColumn(sprintIssues, boardConfiguration);
   }, [sprintIssues, boardConfiguration]);
 
   const isLoading =
@@ -250,7 +250,7 @@ function BoardIssueItem({ item, onRefetch }: BoardIssueItemProps) {
             shortcut={{ modifiers: ["cmd"], key: "r" }}
             onAction={onRefetch}
           />
-          <DebugActions />
+          <CacheActions />
         </ActionPanel>
       }
     />
@@ -270,7 +270,7 @@ function NoSprintEmptyView({ onRefetch }: NoSprintEmptyViewProps) {
       actions={
         <ActionPanel>
           <Action title="Refresh" icon={Icon.ArrowClockwise} onAction={onRefetch} />
-          <DebugActions />
+          <CacheActions />
         </ActionPanel>
       }
     />
@@ -290,7 +290,7 @@ function NoIssuesEmptyView({ onRefetch }: NoIssuesEmptyViewProps) {
       actions={
         <ActionPanel>
           <Action title="Refresh" icon={Icon.ArrowClockwise} onAction={onRefetch} />
-          <DebugActions />
+          <CacheActions />
         </ActionPanel>
       }
     />
@@ -310,7 +310,7 @@ function NoBoardsEmptyView({ onRefetch }: NoBoardsEmptyViewProps) {
       actions={
         <ActionPanel>
           <Action title="Refresh" icon={Icon.ArrowClockwise} onAction={onRefetch} />
-          <DebugActions />
+          <CacheActions />
         </ActionPanel>
       }
     />

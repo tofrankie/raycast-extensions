@@ -1,9 +1,43 @@
+import { useQuery, skipToken } from "@tanstack/react-query";
 import dayjs from "dayjs";
-import { getIssueTypeIcon, getJiraIssueUrl } from "@/utils";
-import { WORKING_HOURS_PER_DAY, JIRA_WORKLOG_RANGE } from "@/constants";
-import type { JiraWorklog, JiraWorklogsResponse, ListItemAccessories, ProcessedWorklog, WorklogGroup } from "@/types";
 
-export function processJiraWorklog(worklogs: JiraWorklogsResponse): WorklogGroup[] {
+import { getJiraWorklogs } from "@/utils/jira-request";
+import { getIssueTypeIcon, getJiraIssueUrl } from "@/utils";
+import { formatSecondsToWorkedTime } from "@/utils/jira-worklog";
+import { WORKING_HOURS_PER_DAY } from "@/constants";
+import type {
+  JiraWorklogsResponse,
+  WorklogGroup,
+  HookQueryOptions,
+  JiraWorklog,
+  ListItemAccessories,
+  ProcessedWorklog,
+} from "@/types";
+
+export function useJiraWorklogsQuery(
+  { userKey, from, to }: { userKey: string | undefined; from: string; to: string },
+  queryOptions?: HookQueryOptions<
+    JiraWorklogsResponse,
+    WorklogGroup[],
+    readonly [{ scope: "jira"; entity: "worklogs"; userKey: string | undefined; from: string; to: string }]
+  >,
+) {
+  return useQuery({
+    queryKey: [{ scope: "jira", entity: "worklogs", userKey, from, to }],
+    queryFn: !userKey
+      ? skipToken
+      : async ({ queryKey }) => {
+          const [{ userKey, from, to }] = queryKey;
+          return await getJiraWorklogs({ worker: [userKey!], from, to });
+        },
+    select: (data) => processList(data),
+    staleTime: Infinity,
+    gcTime: Infinity,
+    ...queryOptions,
+  });
+}
+
+function processList(worklogs: JiraWorklogsResponse): WorklogGroup[] {
   // Sort all worklogs by started time first
   const sortedWorklogs = worklogs.sort((a, b) => dayjs(a.started).valueOf() - dayjs(b.started).valueOf());
 
@@ -20,7 +54,7 @@ export function processJiraWorklog(worklogs: JiraWorklogsResponse): WorklogGroup
       }
 
       groups[date].totalTimeSpentSeconds += worklog.timeSpentSeconds;
-      groups[date].items.push(processWorklogItem(worklog));
+      groups[date].items.push(processItem(worklog));
 
       return groups;
     },
@@ -31,16 +65,16 @@ export function processJiraWorklog(worklogs: JiraWorklogsResponse): WorklogGroup
   return Object.values(groupedByDate)
     .map((group) => ({
       date: group.date,
-      totalTimeSpent: formatTimeSpent(group.totalTimeSpentSeconds),
+      totalTimeSpent: formatSecondsToWorkedTime(group.totalTimeSpentSeconds),
       totalTimeSpentSeconds: group.totalTimeSpentSeconds,
       items: group.items,
       title: dayjs(group.date).format("D/MMM/YYYY"),
-      subtitle: `${formatTimeSpent(group.totalTimeSpentSeconds)} of ${WORKING_HOURS_PER_DAY}h`,
+      subtitle: `${formatSecondsToWorkedTime(group.totalTimeSpentSeconds)} of ${WORKING_HOURS_PER_DAY}h`,
     }))
     .sort((a, b) => dayjs(b.date).valueOf() - dayjs(a.date).valueOf());
 }
 
-function processWorklogItem(worklog: JiraWorklog): ProcessedWorklog {
+function processItem(worklog: JiraWorklog): ProcessedWorklog {
   const { issue, timeSpent, timeSpentSeconds, comment, started } = worklog;
 
   const renderKey = `${worklog.tempoWorklogId}`;
@@ -79,40 +113,4 @@ function processWorklogItem(worklog: JiraWorklog): ProcessedWorklog {
     date,
     worklogId: worklog.originId,
   };
-}
-
-function formatTimeSpent(seconds: number): string {
-  const hours = Math.floor(seconds / 3600);
-  const minutes = Math.floor((seconds % 3600) / 60);
-
-  if (hours === 0) {
-    return `${minutes}m`;
-  } else if (minutes === 0) {
-    return `${hours}h`;
-  } else {
-    return `${hours}h ${minutes}m`;
-  }
-}
-
-export function getDateRange(rangeType: string): { from: string; to: string } {
-  const today = dayjs();
-
-  switch (rangeType) {
-    case JIRA_WORKLOG_RANGE.DAILY:
-      return {
-        from: today.format("YYYY-MM-DD"),
-        to: today.format("YYYY-MM-DD"),
-      };
-    case JIRA_WORKLOG_RANGE.MONTHLY:
-      return {
-        from: today.startOf("month").format("YYYY-MM-DD"),
-        to: today.format("YYYY-MM-DD"),
-      };
-    case JIRA_WORKLOG_RANGE.WEEKLY:
-    default:
-      return {
-        from: today.startOf("week").format("YYYY-MM-DD"),
-        to: today.format("YYYY-MM-DD"),
-      };
-  }
 }

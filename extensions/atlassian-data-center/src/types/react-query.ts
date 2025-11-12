@@ -1,11 +1,16 @@
 import type { UseInfiniteQueryOptions, UseQueryOptions, QueryKey } from "@tanstack/react-query";
 
-export type InfiniteQueryPageParam = { offset: number; limit: number };
-
-export type InfiniteQueryOptions<TQueryFnData, TSelect = TQueryFnData, TPageParam = InfiniteQueryPageParam> = Partial<
-  UseInfiniteQueryOptions<TQueryFnData, Error, TSelect, QueryKey, TPageParam>
+export type HookQueryOptions<TQueryFnData, TSelect = TQueryFnData, TQueryKey extends QueryKey = QueryKey> = Omit<
+  Partial<UseQueryOptions<TQueryFnData, Error, TSelect, TQueryKey>>,
+  "queryKey" | "queryFn" | "select"
 >;
 
-export type QueryOptions<TQueryFnData, TSelect = TQueryFnData> = Partial<
-  UseQueryOptions<TQueryFnData, Error, TSelect, QueryKey>
+export type HookInfiniteQueryOptions<
+  TQueryFnData,
+  TSelect = TQueryFnData,
+  TQueryKey extends QueryKey = QueryKey,
+  TPageParam = { offset: number; limit: number },
+> = Omit<
+  Partial<UseInfiniteQueryOptions<TQueryFnData, Error, TSelect, TQueryKey, TPageParam>>,
+  "queryKey" | "queryFn" | "select" | "initialPageParam" | "getNextPageParam"
 >;

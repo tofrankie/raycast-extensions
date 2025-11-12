@@ -1,7 +1,7 @@
 import { useState, useMemo } from "react";
 import { List, ActionPanel, Action, Icon } from "@raycast/api";
 
-import { withQuery, DebugActions } from "@/components";
+import { withQuery, CacheActions } from "@/components";
 import { AVATAR_TYPE, PAGINATION_SIZE, QUERY_TYPE } from "@/constants";
 import {
   useConfluenceUsersSearchInfiniteQuery,
@@ -10,7 +10,8 @@ import {
   useRefetchWithToast,
   useFetchNextPageWithToast,
 } from "@/hooks";
-import { avatarExtractors, buildQuery, processUserInputAndFilter } from "@/utils";
+import { buildQuery, processUserInputAndFilter } from "@/utils";
+import type { ProcessedConfluenceUser } from "@/types";
 
 const EMPTY_INFINITE_DATA = { list: [], total: 0 };
 
@@ -55,10 +56,13 @@ function ConfluenceSearchUsers() {
     meta: { errorMessage: "Failed to Search User" },
   });
 
-  useAvatar({
+  useAvatar<ProcessedConfluenceUser>({
     items: data.list,
     avatarType: AVATAR_TYPE.CONFLUENCE_USER,
-    extractAvatarData: avatarExtractors.confluenceUser,
+    collectAvatars: (items) =>
+      items
+        .filter((item) => item.avatarUrl && item.avatarCacheKey)
+        .map((item) => ({ url: item.avatarUrl, key: item.avatarCacheKey! })),
   });
 
   const refetchWithToast = useRefetchWithToast({ refetch });
@@ -112,7 +116,7 @@ function ConfluenceSearchUsers() {
                       shortcut={{ modifiers: ["cmd"], key: "r" }}
                       onAction={refetchWithToast}
                     />
-                    <DebugActions />
+                    <CacheActions />
                   </ActionPanel>
                 }
               />

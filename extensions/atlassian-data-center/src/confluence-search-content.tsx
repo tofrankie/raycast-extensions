@@ -1,7 +1,7 @@
 import { useState, useMemo } from "react";
 import { List, ActionPanel, Action, Icon } from "@raycast/api";
 
-import { SearchFilter, withQuery, DebugActions } from "@/components";
+import { SearchFilter, withQuery, CacheActions } from "@/components";
 import { AVATAR_TYPE, COMMAND_NAME, PAGINATION_SIZE, QUERY_TYPE, CONFLUENCE_SEARCH_CONTENT_FILTERS } from "@/constants";
 import {
   useConfluenceContentsSearchInfiniteQuery,
@@ -12,7 +12,6 @@ import {
   useFetchNextPageWithToast,
 } from "@/hooks";
 import {
-  avatarExtractors,
   getSectionTitle,
   processUserInputAndFilter,
   buildQuery,
@@ -20,7 +19,7 @@ import {
   replaceQueryCurrentUser,
   isCQL,
 } from "@/utils";
-import type { SearchFilter as SelectedFilter } from "@/types";
+import type { ProcessedConfluenceContent, SearchFilter as SelectedFilter } from "@/types";
 
 const EMPTY_INFINITE_DATA = { list: [], total: 0 };
 const DEFAULT_FILTER = CONFLUENCE_SEARCH_CONTENT_FILTERS.find((item) => item.value === "updated_recently");
@@ -87,10 +86,13 @@ function ConfluenceSearchContents() {
 
   const toggleFavorite = useToggleConfluenceContentFavorite();
 
-  useAvatar({
+  useAvatar<ProcessedConfluenceContent>({
     items: data.list,
     avatarType: AVATAR_TYPE.CONFLUENCE_USER,
-    extractAvatarData: avatarExtractors.confluenceContentCreator,
+    collectAvatars: (items) =>
+      items
+        .filter((item) => item.creatorAvatarUrl && item.creatorAvatarCacheKey)
+        .map((item) => ({ url: item.creatorAvatarUrl, key: item.creatorAvatarCacheKey! })),
   });
 
   const refetchWithToast = useRefetchWithToast({ refetch });
@@ -191,7 +193,7 @@ function ConfluenceSearchContents() {
                       shortcut={{ modifiers: ["cmd"], key: "r" }}
                       onAction={refetchWithToast}
                     />
-                    <DebugActions />
+                    <CacheActions />
                   </ActionPanel>
                 }
               />

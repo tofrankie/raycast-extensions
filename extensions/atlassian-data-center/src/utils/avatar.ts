@@ -1,10 +1,11 @@
 import path from "node:path";
 import fs from "node:fs/promises";
 import ky from "ky";
+import { Image } from "@raycast/api";
 
-import { getAuthHeaders, avatarCache, ensureDirExists } from "@/utils";
-import { AVATAR_DIR } from "@/constants";
-import type { AvatarType } from "@/types";
+import { getAuthHeaders, ensureDirExists, avatarCache } from "@/utils";
+import { AVATAR_DIR, DEFAULT_AVATAR } from "@/constants";
+import type { AvatarType, ListItemIcon } from "@/types";
 
 type DownloadAvatarOptions = {
   type: AvatarType;
@@ -67,4 +68,45 @@ function getExtensionFromContentType(contentType: string) {
     "image/svg+xml": ".svg",
   };
   return mimeToExtMap[mimeType] || ".png";
+}
+
+export function getAvatarPath(cacheKey?: string): string {
+  if (cacheKey && avatarCache.has(cacheKey)) {
+    const cachedPath = avatarCache.get(cacheKey);
+    if (cachedPath) {
+      return cachedPath;
+    }
+  }
+  return DEFAULT_AVATAR;
+}
+
+export function getAvatarIcon(cacheKey?: string, tooltip?: string): NonNullable<ListItemIcon> {
+  const source = getAvatarPath(cacheKey);
+  return {
+    source,
+    mask: Image.Mask.Circle,
+    ...(tooltip && { tooltip }),
+  };
+}
+
+/**
+ * Extract cache key from Jira user avatar URL.
+ *
+ * Uses the query string as the cache key because:
+ * - A Jira user may have multiple avatars (different versions)
+ * - The query string uniquely identifies the specific avatar instance
+ * - This ensures each avatar variant is cached separately
+ *
+ * @example
+ * Input: "https://jira.example.com/secure/useravatar?ownerId=frankie&avatarId=123"
+ * Output: "ownerId=frankie&avatarId=123"
+ */
+export function getJiraUserAvatarCacheKey(avatarUrl: string): string | undefined {
+  try {
+    const url = new URL(avatarUrl);
+    const queryString = url.search.substring(1); // Remove leading '?'
+    return queryString || undefined;
+  } catch {
+    return undefined;
+  }
 }

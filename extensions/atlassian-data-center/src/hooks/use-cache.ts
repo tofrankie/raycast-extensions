@@ -1,7 +1,8 @@
 import { CACHE_KEY, JIRA_BOARD_TYPE } from "@/constants";
 import { useCachedState } from "@raycast/utils";
 
-import type { JiraBoardType } from "@/types";
+import type { JiraBoardType, JiraField } from "@/types";
+import { useMemo } from "react";
 
 const DEFAULT_NOTIFICATION_AVAILABLE = true;
 
@@ -48,5 +49,35 @@ export function useJiraBoardCachedState() {
     sprintId,
     setSprintId,
     reset,
+  };
+}
+
+const DEFAULT_SELECTED_FIELDS: JiraField[] = [];
+
+export function useJiraSelectedFieldsCachedState() {
+  const [fields, setFields] = useCachedState<JiraField[]>(CACHE_KEY.JIRA_SELECTED_FIELDS, DEFAULT_SELECTED_FIELDS);
+
+  const fieldIds = useMemo(() => fields.map((field) => field.id), [fields]);
+
+  const addField = (field: JiraField) => {
+    if (!fields.some((item) => item.id === field.id)) {
+      setFields([...fields, field]);
+    }
+  };
+
+  const removeField = (fieldId: string) => {
+    setFields(fields.filter((field) => field.id !== fieldId));
+  };
+
+  const resetFields = () => {
+    setFields(DEFAULT_SELECTED_FIELDS);
+  };
+
+  return {
+    fields,
+    fieldIds,
+    addField,
+    removeField,
+    resetFields,
   };
 }

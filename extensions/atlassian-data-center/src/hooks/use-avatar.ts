@@ -1,20 +1,30 @@
 import { useMemo } from "react";
-import { useQueries } from "@tanstack/react-query";
+import { useQueries, type UseQueryOptions } from "@tanstack/react-query";
 
-import { CURRENT_APP_TYPE, CURRENT_PAT } from "@/constants";
 import { avatarCache, downloadAvatar } from "@/utils";
+import { CURRENT_APP_TYPE, CURRENT_PAT } from "@/constants";
 import type { AvatarList, AvatarType } from "@/types";
 
 type UseAvatarOptions<T> = {
   items: T[];
   avatarType: AvatarType;
-  extractAvatarData: (items: T[]) => AvatarList;
+  collectAvatars: (items: T[]) => AvatarList;
 };
 
-export function useAvatar<T>(options: UseAvatarOptions<T>) {
-  const { items, extractAvatarData, avatarType } = options;
+type AvatarQueryKey = readonly [
+  {
+    scope: string;
+    entity: "avatar";
+    type: AvatarType;
+    url: string;
+    key: string;
+  },
+];
 
-  const avatarList = useMemo(() => extractAvatarData(items), [items, extractAvatarData]);
+type AvatarQueryOptions = UseQueryOptions<string, Error, string, AvatarQueryKey>;
+
+export function useAvatar<T>({ items, avatarType, collectAvatars }: UseAvatarOptions<T>) {
+  const avatarList = useMemo(() => collectAvatars(items), [items, collectAvatars]);
 
   const uniqueList = useMemo(() => {
     return avatarList.filter(
@@ -22,21 +32,18 @@ export function useAvatar<T>(options: UseAvatarOptions<T>) {
     );
   }, [avatarList]);
 
-  const queries = useMemo(() => {
-    return uniqueList.map((item) => ({
-      queryKey: [`${CURRENT_APP_TYPE}-avatar`, { url: item.url }],
-      queryFn: async () => {
-        return downloadAvatar({
-          token: CURRENT_PAT,
-          type: avatarType,
-          url: item.url,
-          key: item.key,
-        });
-      },
-      staleTime: Infinity,
-      gcTime: Infinity,
-    }));
-  }, [uniqueList]);
-
-  useQueries({ queries });
+  useQueries({
+    queries: uniqueList.map(
+      (item): AvatarQueryOptions => ({
+        queryKey: [{ scope: CURRENT_APP_TYPE, entity: "avatar", type: avatarType, url: item.url, key: item.key }],
+        queryFn: ({ queryKey }) => {
+          const [{ type, url, key }] = queryKey;
+          return downloadAvatar({ token: CURRENT_PAT, type, url, key });
+        },
+        staleTime: Infinity,
+        gcTime: Infinity,
+      }),
+    ),
+    combine: (results) => results.filter((result) => result.isSuccess).length,
+  });
 }

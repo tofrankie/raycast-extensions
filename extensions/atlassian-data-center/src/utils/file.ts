@@ -2,10 +2,6 @@ import fs from "node:fs/promises";
 
 const dirExists = new Map<string, boolean>();
 
-export function clearDirExistsCache() {
-  dirExists.clear();
-}
-
 export async function ensureDirExists(dir: string): Promise<void> {
   if (dirExists.has(dir)) return;
 

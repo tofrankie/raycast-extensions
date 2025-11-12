@@ -1,10 +1,11 @@
 import { useState, useMemo } from "react";
 import { List, ActionPanel, Action, Icon } from "@raycast/api";
 
-import { avatarExtractors, processUserInputAndFilter, buildQuery, isJQL } from "@/utils";
+import { processUserInputAndFilter, buildQuery, isJQL } from "@/utils";
+import type { ProcessedConfluenceSpace } from "@/types";
 import { QUERY_TYPE } from "@/constants";
 import { AVATAR_TYPE, COMMAND_NAME, PAGINATION_SIZE } from "@/constants";
-import { SearchFilter, withQuery, DebugActions } from "@/components";
+import { SearchFilter, withQuery, CacheActions } from "@/components";
 import {
   useConfluenceSpacesSearchInfiniteQuery,
   useAvatar,
@@ -65,10 +66,13 @@ function ConfluenceSearchSpaces() {
     meta: { errorMessage: "Failed to Search Space" },
   });
 
-  useAvatar({
+  useAvatar<ProcessedConfluenceSpace>({
     items: data.list,
     avatarType: AVATAR_TYPE.CONFLUENCE_SPACE,
-    extractAvatarData: avatarExtractors.confluenceSpace,
+    collectAvatars: (items) =>
+      items
+        .filter((item) => item.avatarUrl && item.avatarCacheKey)
+        .map((item) => ({ url: item.avatarUrl, key: item.avatarCacheKey! })),
   });
 
   const refetchWithToast = useRefetchWithToast({ refetch });
@@ -130,7 +134,7 @@ function ConfluenceSearchSpaces() {
                       shortcut={{ modifiers: ["cmd"], key: "r" }}
                       onAction={refetchWithToast}
                     />
-                    <DebugActions />
+                    <CacheActions />
                   </ActionPanel>
                 }
               />

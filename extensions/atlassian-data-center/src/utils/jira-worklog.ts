@@ -1,3 +1,6 @@
+import dayjs from "dayjs";
+import { JIRA_WORKLOG_RANGE } from "@/constants";
+
 /**
  * Normalize time input to standardized format: 1h 30m, 30m, or 1h
  * Examples:
@@ -100,4 +103,27 @@ export function formatSecondsToWorkedTime(seconds: number): string {
   }
 
   return formattedTime.trim() || "0h";
+}
+
+export function getDateRange(rangeType: string): { from: string; to: string } {
+  const today = dayjs();
+
+  switch (rangeType) {
+    case JIRA_WORKLOG_RANGE.DAILY:
+      return {
+        from: today.format("YYYY-MM-DD"),
+        to: today.format("YYYY-MM-DD"),
+      };
+    case JIRA_WORKLOG_RANGE.MONTHLY:
+      return {
+        from: today.startOf("month").format("YYYY-MM-DD"),
+        to: today.format("YYYY-MM-DD"),
+      };
+    case JIRA_WORKLOG_RANGE.WEEKLY:
+    default:
+      return {
+        from: today.startOf("week").format("YYYY-MM-DD"),
+        to: today.format("YYYY-MM-DD"),
+      };
+  }
 }

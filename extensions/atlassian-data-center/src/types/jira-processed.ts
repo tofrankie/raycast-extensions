@@ -46,6 +46,7 @@ export type ProcessedJiraKanbanBoardIssue = ProcessedBase &
     summary: string;
     url: string;
     editUrl?: string;
+    statusId?: string;
   };
 
 export type ProcessedWorklog = ProcessedBase &
