@@ -2,7 +2,7 @@ import { useEffect } from "react";
 import { useCachedState } from "@raycast/utils";
 import { useQuery, skipToken } from "@tanstack/react-query";
 
-import { getConfluenceCurrentUser } from "@/utils/confluence-request";
+import { getConfluenceCurrentUser } from "@/utils";
 import { CACHE_KEY } from "@/constants";
 import type { ConfluenceCurrentUser } from "@/types";
 

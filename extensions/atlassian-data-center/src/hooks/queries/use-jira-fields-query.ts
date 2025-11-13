@@ -1,7 +1,7 @@
 import { useQuery } from "@tanstack/react-query";
 import { Icon } from "@raycast/api";
 
-import { getJiraFields } from "@/utils/jira-request";
+import { getJiraFields } from "@/utils";
 import type { JiraField, ProcessedJiraField, HookQueryOptions, ListItemAccessories } from "@/types";
 
 export function useJiraFieldsQuery(

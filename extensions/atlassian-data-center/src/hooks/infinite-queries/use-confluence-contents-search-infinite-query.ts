@@ -1,10 +1,10 @@
 import { useInfiniteQuery } from "@tanstack/react-query";
 import { Icon, Image } from "@raycast/api";
 
-import { PAGINATION_SIZE } from "@/constants";
-import { getConfluenceContents } from "@/utils/confluence-request";
-import { getAvatarPath } from "@/utils/avatar";
+import { PAGINATION_SIZE, AVATAR_TYPE } from "@/constants";
+import { getConfluenceContents, getAvatarPath } from "@/utils";
 import { CONFLUENCE_BASE_URL, CONFLUENCE_CONTENT_TYPE, CONFLUENCE_TYPE_ICON, CONFLUENCE_TYPE_LABEL } from "@/constants";
+import { useAvatarCache } from "@/hooks";
 import type {
   ConfluenceContentSearchResponse,
   ConfluenceIconType,
@@ -22,6 +22,8 @@ export const useConfluenceContentsSearchInfiniteQuery = (
     readonly [{ scope: "confluence"; entity: "search"; type: "content"; cql: string }]
   >,
 ) => {
+  const avatarCache = useAvatarCache(AVATAR_TYPE.CONFLUENCE_USER);
+
   return useInfiniteQuery({
     queryKey: [{ scope: "confluence", entity: "search", type: "content", cql }],
     queryFn: async ({ queryKey, pageParam }) => {
@@ -38,7 +40,7 @@ export const useConfluenceContentsSearchInfiniteQuery = (
       return undefined;
     },
     select: (data) => {
-      const list = data.pages.flatMap((page) => processList(page.results));
+      const list = data.pages.flatMap((page) => processList(page.results, avatarCache.cache));
       const total = data.pages[0]?.totalCount ?? data.pages[0]?.totalSize ?? 0;
       return { list, total };
     },
@@ -46,11 +48,17 @@ export const useConfluenceContentsSearchInfiniteQuery = (
   });
 };
 
-function processList(results: ConfluenceContentSearchResult[]): ProcessedConfluenceContent[] {
-  return results.map((item) => processItem(item));
+function processList(
+  results: ConfluenceContentSearchResult[],
+  cacheData: Record<string, string>,
+): ProcessedConfluenceContent[] {
+  return results.map((item) => processItem(item, cacheData));
 }
 
-function processItem(item: ConfluenceContentSearchResult): ProcessedConfluenceContent {
+function processItem(
+  item: ConfluenceContentSearchResult,
+  cacheData: Record<string, string>,
+): ProcessedConfluenceContent {
   const id = item.id;
   const title = { value: item.title, tooltip: `Title: ${item.title}` };
   const spaceName = item.space?.name || "";
@@ -78,7 +86,7 @@ function processItem(item: ConfluenceContentSearchResult): ProcessedConfluenceCo
 
   const creatorAvatarUrl = `${baseUrl}${item.history.createdBy.profilePicture.path}`;
   const creatorAvatarCacheKey = creatorUserKey;
-  const creatorAvatar = getAvatarPath(creatorAvatarCacheKey);
+  const creatorAvatar = getAvatarPath(creatorAvatarCacheKey, cacheData);
 
   const isFavourited = item.metadata.currentuser.favourited?.isFavourite ?? false;
   const favouritedAt = item.metadata.currentuser.favourited?.favouritedDate

@@ -32,7 +32,7 @@ On first use, you'll need to provide:
 - **Board View** - View Jira board
 - **Worklog View** - View Jira worklog
 - **Notification View** - View Jira notifications (requires [Notifications for Jira](https://marketplace.atlassian.com/apps/1217434/notifications-in-jira-desktop-and-icon-alerts) plugin on your Jira instance)
-- **Manage Fields** - Manage custom fields for Jira issue search
+- **Manage Fields** - Manage custom fields for Jira issue search. Use "Add to Search" to include user-type custom fields in search results, which will display their values in the tooltip when searching issues
 - **JQL Support** - Use [Jira Query Language](https://confluence.atlassian.com/jiracoreserver/advanced-searching-939937709.html) for complex searches
 - **Common Filters** - My Open Issues, Open Issues, Assigned to Me, Reported by Me, Created Recently, Updated Recently, Resolved Recently, Viewed Recently, Watched by Me
 

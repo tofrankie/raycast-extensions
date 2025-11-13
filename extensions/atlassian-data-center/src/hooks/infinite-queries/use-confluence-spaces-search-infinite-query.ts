@@ -1,10 +1,10 @@
 import { useInfiniteQuery } from "@tanstack/react-query";
 import { Icon } from "@raycast/api";
 
-import { PAGINATION_SIZE } from "@/constants";
-import { getConfluenceSpaces } from "@/utils/confluence-request";
-import { getAvatarIcon } from "@/utils/avatar";
+import { PAGINATION_SIZE, AVATAR_TYPE } from "@/constants";
+import { getConfluenceSpaces, getAvatarIcon } from "@/utils";
 import { CONFLUENCE_SPACE_TYPE_LABEL, CONFLUENCE_BASE_URL } from "@/constants";
+import { useAvatarCache } from "@/hooks";
 import type {
   ConfluenceSearchResponse,
   ConfluenceSpaceType,
@@ -22,6 +22,8 @@ export const useConfluenceSpacesSearchInfiniteQuery = (
     readonly [{ scope: "confluence"; entity: "search"; type: "spaces"; cql: string }]
   >,
 ) => {
+  const avatarCache = useAvatarCache(AVATAR_TYPE.CONFLUENCE_SPACE);
+
   return useInfiniteQuery({
     queryKey: [{ scope: "confluence", entity: "search", type: "spaces", cql }],
     queryFn: async ({ queryKey, pageParam }) => {
@@ -45,7 +47,7 @@ export const useConfluenceSpacesSearchInfiniteQuery = (
         (result, index, self) => index === self.findIndex((r) => r.space?.key === result.space?.key),
       );
 
-      const processedSpaces = processList(uniqueResults);
+      const processedSpaces = processList(uniqueResults, avatarCache.cache);
       const total = data.pages[0]?.totalCount || data.pages[0]?.totalSize || 0;
 
       return { list: processedSpaces, total };
@@ -54,11 +56,11 @@ export const useConfluenceSpacesSearchInfiniteQuery = (
   });
 };
 
-function processList(results: ConfluenceSearchResult[]): ProcessedConfluenceSpace[] {
-  return results.map((result) => processItem(result));
+function processList(results: ConfluenceSearchResult[], cacheData: Record<string, string>): ProcessedConfluenceSpace[] {
+  return results.map((result) => processItem(result, cacheData));
 }
 
-function processItem(result: ConfluenceSearchResult): ProcessedConfluenceSpace {
+function processItem(result: ConfluenceSearchResult, cacheData: Record<string, string>): ProcessedConfluenceSpace {
   const space = result.space!;
 
   const spaceKey = space.key || "";
@@ -72,7 +74,7 @@ function processItem(result: ConfluenceSearchResult): ProcessedConfluenceSpace {
   const isFavourited =
     space.metadata?.labels?.results?.some((label) => label.prefix === "my" && label.name === "favourite") ?? false;
 
-  const icon = getAvatarIcon(avatarCacheKey, space.name);
+  const icon = getAvatarIcon(avatarCacheKey, cacheData, space.name);
 
   const description = space.description?.plain?.value || "";
   const subtitle = {

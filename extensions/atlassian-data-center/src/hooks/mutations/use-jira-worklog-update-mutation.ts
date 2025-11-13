@@ -1,7 +1,7 @@
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import type { UseMutationOptions } from "@tanstack/react-query";
 
-import { updateJiraWorklog } from "@/utils/jira-request";
+import { updateJiraWorklog } from "@/utils";
 import type { JiraWorklog, JiraWorklogUpdateParams } from "@/types";
 
 type JiraWorklogUpdateMutationParams = { worklogId: number; params: JiraWorklogUpdateParams };

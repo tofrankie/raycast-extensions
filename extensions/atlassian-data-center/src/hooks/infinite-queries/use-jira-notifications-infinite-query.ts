@@ -1,8 +1,8 @@
 import { useInfiniteQuery } from "@tanstack/react-query";
 
-import { PAGINATION_SIZE } from "@/constants";
-import { getJiraNotifications, getJiraIssueUrl } from "@/utils";
-import { getAvatarIcon, getJiraUserAvatarCacheKey } from "@/utils/avatar";
+import { PAGINATION_SIZE, AVATAR_TYPE } from "@/constants";
+import { getJiraNotifications, getJiraIssueUrl, getAvatarIcon, getJiraUserAvatarCacheKey } from "@/utils";
+import { useAvatarCache } from "@/hooks";
 import type {
   JiraNotificationsResponse,
   ProcessedJiraNotification,
@@ -19,6 +19,8 @@ export function useJiraNotificationsInfiniteQuery(
     readonly [{ scope: "jira"; entity: "notifications" }]
   >,
 ) {
+  const avatarCache = useAvatarCache(AVATAR_TYPE.JIRA_USER);
+
   return useInfiniteQuery({
     queryKey: [{ scope: "jira", entity: "notifications" }],
     queryFn: async ({ pageParam }) => {
@@ -36,7 +38,7 @@ export function useJiraNotificationsInfiniteQuery(
     },
     select: (data) => {
       const allNotifications = data.pages.flatMap((page) => page.notificationsList);
-      const processedNotifications: ProcessedJiraNotification[] = processList(allNotifications);
+      const processedNotifications: ProcessedJiraNotification[] = processList(allNotifications, avatarCache.cache);
 
       return {
         list: processedNotifications,
@@ -47,14 +49,14 @@ export function useJiraNotificationsInfiniteQuery(
   });
 }
 
-function processList(results: JiraNotificationItem[]): ProcessedJiraNotification[] {
-  return results.map((item) => processItem(item));
+function processList(results: JiraNotificationItem[], cacheData: Record<string, string>): ProcessedJiraNotification[] {
+  return results.map((item) => processItem(item, cacheData));
 }
 
-function processItem(item: JiraNotificationItem): ProcessedJiraNotification {
+function processItem(item: JiraNotificationItem, cacheData: Record<string, string>): ProcessedJiraNotification {
   const url = getJiraIssueUrl(item.issueKey);
   const avatarCacheKey = getJiraUserAvatarCacheKey(item.avatarUrl);
-  const icon = getAvatarIcon(avatarCacheKey, item.actionUser);
+  const icon = getAvatarIcon(avatarCacheKey, cacheData, item.actionUser);
 
   const title = {
     value: item.title,

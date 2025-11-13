@@ -1,6 +1,7 @@
 // Utility hooks
 export * from "./use-api-test";
 export * from "./use-avatar";
+export * from "./use-avatar-cache";
 export * from "./use-cache";
 export * from "./use-jira-current-user";
 export * from "./use-fetch-next-page-with-toast";

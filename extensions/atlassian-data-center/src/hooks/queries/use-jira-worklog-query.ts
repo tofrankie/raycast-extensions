@@ -1,6 +1,6 @@
 import { useQuery } from "@tanstack/react-query";
 
-import { getJiraWorklogById } from "@/utils/jira-request";
+import { getJiraWorklogById } from "@/utils";
 import type { JiraWorklog, HookQueryOptions } from "@/types";
 
 export function useJiraWorklogQuery(

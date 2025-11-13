@@ -1,10 +1,9 @@
 import { useInfiniteQuery } from "@tanstack/react-query";
 
-import { PAGINATION_SIZE } from "@/constants";
-import { getConfluenceUsers } from "@/utils/confluence-request";
-import { getAvatarIcon } from "@/utils/avatar";
+import { PAGINATION_SIZE, AVATAR_TYPE } from "@/constants";
+import { getConfluenceUsers, getAvatarIcon } from "@/utils";
 import { CONFLUENCE_BASE_URL, CONFLUENCE_USER_STATUS } from "@/constants";
-import { useConfluenceCurrentUser } from "../queries/use-confluence-current-user";
+import { useConfluenceCurrentUser, useAvatarCache } from "@/hooks";
 import type {
   ConfluenceSearchResponse,
   ProcessedConfluenceUser,
@@ -23,6 +22,7 @@ export const useConfluenceUsersSearchInfiniteQuery = (
   >,
 ) => {
   const { currentUser } = useConfluenceCurrentUser();
+  const avatarCache = useAvatarCache(AVATAR_TYPE.CONFLUENCE_USER);
 
   return useInfiniteQuery({
     queryKey: [{ scope: "confluence", entity: "search", type: "users", cql }],
@@ -47,7 +47,7 @@ export const useConfluenceUsersSearchInfiniteQuery = (
         (result, index, self) => index === self.findIndex((r) => r.user?.userKey === result.user?.userKey),
       );
 
-      const processedUsers = processList(uniqueResults, currentUser);
+      const processedUsers = processList(uniqueResults, currentUser, avatarCache.cache);
       const total = data.pages[0]?.totalCount || data.pages[0]?.totalSize || 0;
 
       return { list: processedUsers, total };
@@ -59,11 +59,16 @@ export const useConfluenceUsersSearchInfiniteQuery = (
 function processList(
   results: ConfluenceSearchResult[],
   currentUser: ConfluenceCurrentUser | null,
+  cacheData: Record<string, string>,
 ): ProcessedConfluenceUser[] {
-  return results.map((item) => processItem(item, currentUser));
+  return results.map((item) => processItem(item, currentUser, cacheData));
 }
 
-function processItem(item: ConfluenceSearchResult, currentUser: ConfluenceCurrentUser | null): ProcessedConfluenceUser {
+function processItem(
+  item: ConfluenceSearchResult,
+  currentUser: ConfluenceCurrentUser | null,
+  cacheData: Record<string, string>,
+): ProcessedConfluenceUser {
   const user = item.user!;
 
   const title = user.displayName;
@@ -73,7 +78,7 @@ function processItem(item: ConfluenceSearchResult, currentUser: ConfluenceCurren
 
   const avatarUrl = user.profilePicture.path ? `${CONFLUENCE_BASE_URL}${user.profilePicture.path}` : "";
   const avatarCacheKey = userKey;
-  const icon = getAvatarIcon(avatarCacheKey, user.displayName);
+  const icon = getAvatarIcon(avatarCacheKey, cacheData, user.displayName);
 
   // TODO: Open user space homepage
   const url = `${CONFLUENCE_BASE_URL}${item.url}`;

@@ -3,8 +3,7 @@ import { List, ActionPanel, Action, Icon } from "@raycast/api";
 
 import { processUserInputAndFilter, buildQuery, isJQL } from "@/utils";
 import type { ProcessedConfluenceSpace } from "@/types";
-import { QUERY_TYPE } from "@/constants";
-import { AVATAR_TYPE, COMMAND_NAME, PAGINATION_SIZE } from "@/constants";
+import { QUERY_TYPE, AVATAR_TYPE, COMMAND_NAME, PAGINATION_SIZE } from "@/constants";
 import { SearchFilter, withQuery, CacheActions } from "@/components";
 import {
   useConfluenceSpacesSearchInfiniteQuery,

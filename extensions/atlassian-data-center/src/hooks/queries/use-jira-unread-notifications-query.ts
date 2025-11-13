@@ -1,6 +1,6 @@
 import { useQuery } from "@tanstack/react-query";
 
-import { getJiraNotifications } from "@/utils/jira-request";
+import { getJiraNotifications } from "@/utils";
 import type { JiraNotificationsResponse, HookQueryOptions } from "@/types";
 
 export function useJiraUnreadNotificationsQuery(

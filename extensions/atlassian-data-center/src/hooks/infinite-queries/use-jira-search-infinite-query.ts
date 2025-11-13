@@ -8,7 +8,7 @@ import {
   getJiraIssueUrl,
   buildPriorityAndStatusAccessories,
 } from "@/utils";
-import { useJiraSelectedFieldsCachedState } from "@/hooks/use-cache";
+import { useJiraSelectedFieldsCachedState } from "@/hooks";
 import type {
   JiraSearchResponse,
   ProcessedJiraIssue,

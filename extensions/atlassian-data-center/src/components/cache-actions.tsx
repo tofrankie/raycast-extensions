@@ -10,9 +10,8 @@ import {
   Alert,
   popToRoot,
 } from "@raycast/api";
-import { DEBUG_ENABLE, COMMAND_NAME, CACHE_KEY, AVATAR_TYPE } from "@/constants";
-import { clearCacheDirectories, clearAvatarCacheByType } from "@/utils";
-import type { AvatarType } from "@/types";
+import { DEBUG_ENABLE, COMMAND_NAME, CACHE_KEY, AVATAR_TYPE, CACHE_DIR, AVATAR_TYPE_CACHE_KEY_MAP } from "@/constants";
+import { removeDirectories } from "@/utils";
 
 const SUPPORT_PATH = environment.supportPath;
 const cache = new Cache();
@@ -28,7 +27,8 @@ export default function CacheActions() {
   const clearAllCache = async () => {
     const confirmed = await confirmAlert({
       title: "Clear All Cache",
-      message: "This will clear all caches including avatar cache and user settings. This action cannot be undone.",
+      message:
+        "This will clear all caches for Atlassian Data Center, including avatar cache and user settings. This action cannot be undone.",
       icon: Icon.Warning,
       primaryAction: {
         title: "Clear All",
@@ -38,12 +38,8 @@ export default function CacheActions() {
 
     if (!confirmed) return;
 
-    for (const avatarType of Object.values(AVATAR_TYPE)) {
-      await clearAvatarCacheByType(avatarType as AvatarType);
-    }
-
     cache.clear();
-    await clearCacheDirectories();
+    await removeDirectories(Object.values(CACHE_DIR));
     onSuccess();
   };
 
@@ -97,8 +93,10 @@ interface CacheActionsProps {
 
 function ConfluenceSearchContentCacheActions({ onCleared }: CacheActionsProps) {
   const clearCache = async () => {
-    await clearAvatarCacheByType(AVATAR_TYPE.CONFLUENCE_USER);
+    console.log("has", cache.has(CACHE_KEY.CONFLUENCE_CURRENT_USER), CACHE_KEY.CONFLUENCE_CURRENT_USER);
     cache.remove(CACHE_KEY.CONFLUENCE_CURRENT_USER);
+    cache.remove(AVATAR_TYPE_CACHE_KEY_MAP[AVATAR_TYPE.CONFLUENCE_USER]);
+    await removeDirectories([CACHE_DIR[AVATAR_TYPE.CONFLUENCE_USER]]);
     onCleared?.();
   };
 
@@ -107,8 +105,9 @@ function ConfluenceSearchContentCacheActions({ onCleared }: CacheActionsProps) {
 
 function ConfluenceSearchUserCacheActions({ onCleared }: CacheActionsProps) {
   const clearCache = async () => {
-    await clearAvatarCacheByType(AVATAR_TYPE.CONFLUENCE_USER);
     cache.remove(CACHE_KEY.CONFLUENCE_CURRENT_USER);
+    cache.remove(AVATAR_TYPE_CACHE_KEY_MAP[AVATAR_TYPE.CONFLUENCE_USER]);
+    await removeDirectories([CACHE_DIR[AVATAR_TYPE.CONFLUENCE_USER]]);
     onCleared?.();
   };
 
@@ -117,7 +116,9 @@ function ConfluenceSearchUserCacheActions({ onCleared }: CacheActionsProps) {
 
 function ConfluenceSearchSpaceCacheActions({ onCleared }: CacheActionsProps) {
   const clearCache = async () => {
-    await clearAvatarCacheByType(AVATAR_TYPE.CONFLUENCE_SPACE);
+    cache.remove(CACHE_KEY.CONFLUENCE_CURRENT_USER);
+    cache.remove(AVATAR_TYPE_CACHE_KEY_MAP[AVATAR_TYPE.CONFLUENCE_SPACE]);
+    await removeDirectories([CACHE_DIR[AVATAR_TYPE.CONFLUENCE_SPACE]]);
     onCleared?.();
   };
 
@@ -127,7 +128,6 @@ function ConfluenceSearchSpaceCacheActions({ onCleared }: CacheActionsProps) {
 function JiraSearchIssueCacheActions({ onCleared }: CacheActionsProps) {
   const clearCache = async () => {
     cache.remove(CACHE_KEY.JIRA_NOTIFICATION_AVAILABLE);
-    cache.remove(CACHE_KEY.JIRA_SELECTED_FIELDS);
     cache.remove(CACHE_KEY.JIRA_CURRENT_USER);
     onCleared?.();
   };
@@ -137,6 +137,7 @@ function JiraSearchIssueCacheActions({ onCleared }: CacheActionsProps) {
 
 function JiraManageFieldCacheActions({ onCleared }: CacheActionsProps) {
   const clearCache = async () => {
+    cache.remove(CACHE_KEY.JIRA_CURRENT_USER);
     cache.remove(CACHE_KEY.JIRA_SELECTED_FIELDS);
     onCleared?.();
   };
@@ -147,6 +148,7 @@ function JiraManageFieldCacheActions({ onCleared }: CacheActionsProps) {
 function JiraWorklogViewCacheActions({ onCleared }: CacheActionsProps) {
   const clearCache = async () => {
     cache.remove(CACHE_KEY.JIRA_CURRENT_USER);
+    cache.remove(CACHE_KEY.JIRA_CURRENT_USER);
     onCleared?.();
   };
 
@@ -155,6 +157,7 @@ function JiraWorklogViewCacheActions({ onCleared }: CacheActionsProps) {
 
 function JiraBoardViewCacheActions({ onCleared }: CacheActionsProps) {
   const clearCache = async () => {
+    cache.remove(CACHE_KEY.JIRA_CURRENT_USER);
     cache.remove(CACHE_KEY.JIRA_SELECTED_BOARD_ID);
     cache.remove(CACHE_KEY.JIRA_SELECTED_BOARD_TYPE);
     onCleared?.();
@@ -165,6 +168,7 @@ function JiraBoardViewCacheActions({ onCleared }: CacheActionsProps) {
 
 function JiraNotificationViewCacheActions({ onCleared }: CacheActionsProps) {
   const clearCache = async () => {
+    cache.remove(CACHE_KEY.JIRA_CURRENT_USER);
     cache.remove(CACHE_KEY.JIRA_NOTIFICATION_AVAILABLE);
     onCleared?.();
   };

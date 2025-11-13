@@ -2,7 +2,7 @@ import { showFailureToast } from "@raycast/utils";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import type { InfiniteData } from "@tanstack/react-query";
 
-import { addConfluenceContentToFavorite, removeConfluenceContentFromFavorite } from "@/utils/confluence-request";
+import { addConfluenceContentToFavorite, removeConfluenceContentFromFavorite } from "@/utils";
 import type { ConfluenceContentSearchResponse } from "@/types";
 
 export const useToggleConfluenceContentFavorite = () => {

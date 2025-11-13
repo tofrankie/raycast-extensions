@@ -1,7 +1,7 @@
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import type { UseMutationOptions } from "@tanstack/react-query";
 
-import { markJiraAllNotificationsAsRead } from "@/utils/jira-request";
+import { markJiraAllNotificationsAsRead } from "@/utils";
 
 export function useMarkJiraAllNotificationsAsReadMutation(options?: Partial<UseMutationOptions<void, Error, void>>) {
   const queryClient = useQueryClient();

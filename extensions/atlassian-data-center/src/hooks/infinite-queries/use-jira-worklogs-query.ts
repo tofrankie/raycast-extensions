@@ -1,9 +1,7 @@
 import { useQuery, skipToken } from "@tanstack/react-query";
 import dayjs from "dayjs";
 
-import { getJiraWorklogs } from "@/utils/jira-request";
-import { getIssueTypeIcon, getJiraIssueUrl } from "@/utils";
-import { formatSecondsToWorkedTime } from "@/utils/jira-worklog";
+import { getJiraWorklogs, getIssueTypeIcon, getJiraIssueUrl, formatSecondsToWorkedTime } from "@/utils";
 import { WORKING_HOURS_PER_DAY } from "@/constants";
 import type {
   JiraWorklogsResponse,

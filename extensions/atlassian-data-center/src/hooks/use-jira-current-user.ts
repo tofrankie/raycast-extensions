@@ -2,7 +2,7 @@ import { useEffect } from "react";
 import { useCachedState } from "@raycast/utils";
 import { useQuery, skipToken } from "@tanstack/react-query";
 
-import { getJiraCurrentUser } from "@/utils/jira-request";
+import { getJiraCurrentUser } from "@/utils";
 import { CACHE_KEY } from "@/constants";
 import type { JiraCurrentUser } from "@/types";
 

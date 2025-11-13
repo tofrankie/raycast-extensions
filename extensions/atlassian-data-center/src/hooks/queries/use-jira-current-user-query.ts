@@ -1,6 +1,6 @@
 import { useQuery } from "@tanstack/react-query";
 
-import { getJiraCurrentUser } from "@/utils/jira-request";
+import { getJiraCurrentUser } from "@/utils";
 import type { JiraCurrentUser, HookQueryOptions } from "@/types";
 
 export function useJiraCurrentUserQuery(

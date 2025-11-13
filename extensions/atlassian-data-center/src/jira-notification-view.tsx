@@ -76,7 +76,7 @@ function JiraNotificationView() {
 
   useAvatar<ProcessedJiraNotification>({
     items: data.list,
-    avatarType: AVATAR_TYPE.JIRA_NOTIFICATION_USER,
+    avatarType: AVATAR_TYPE.JIRA_USER,
     collectAvatars: (items) =>
       items
         .filter((item) => item.actionMakerAvatarUrl && item.actionMakerAvatarCacheKey)

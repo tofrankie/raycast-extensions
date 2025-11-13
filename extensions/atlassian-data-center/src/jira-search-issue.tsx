@@ -220,6 +220,7 @@ function JiraSearchIssues() {
                         refetchUnreadNotifications();
                       }}
                     />
+                    <CacheActions />
                   </ActionPanel>
                 }
               />

@@ -1,7 +1,7 @@
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import type { UseMutationOptions } from "@tanstack/react-query";
 
-import { createJiraWorklog } from "@/utils/jira-request";
+import { createJiraWorklog } from "@/utils";
 import type { JiraWorklog, JiraWorklogCreateParams } from "@/types";
 
 type JiraWorklogCreateMutationOptions = UseMutationOptions<JiraWorklog, Error, JiraWorklogCreateParams>;

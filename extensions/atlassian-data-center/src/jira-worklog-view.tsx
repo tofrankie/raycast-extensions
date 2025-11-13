@@ -3,10 +3,9 @@ import { List, ActionPanel, Action, Icon } from "@raycast/api";
 
 import { withQuery, CacheActions } from "@/components";
 import { JiraWorklogForm } from "@/pages";
-import { copyToClipboardWithToast } from "@/utils";
+import { copyToClipboardWithToast, getDateRange } from "@/utils";
 import { JIRA_WORKLOG_RANGE } from "@/constants";
 import { useJiraWorklogsQuery, useJiraCurrentUser, useRefetchWithToast } from "@/hooks";
-import { getDateRange } from "@/utils";
 
 export default withQuery(JiraWorklogView);
 

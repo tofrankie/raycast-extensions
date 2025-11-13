@@ -1,6 +1,6 @@
 import { useQuery } from "@tanstack/react-query";
 
-import { getJiraProjects } from "@/utils/jira-request";
+import { getJiraProjects } from "@/utils";
 import type { JiraIssueProject, HookQueryOptions } from "@/types";
 
 export function useJiraProjectsQuery(
