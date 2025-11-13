@@ -1,5 +1,4 @@
 export * from "./api";
-export * from "./avatar";
 export * from "./common";
 export * from "./confluence-shared";
 export * from "./confluence-content";

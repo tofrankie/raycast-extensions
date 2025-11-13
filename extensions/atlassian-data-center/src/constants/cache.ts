@@ -24,6 +24,12 @@ export const AVATAR_TYPE = {
   JIRA_USER: "jira_user",
 } as const;
 
+export const AVATAR_TYPE_CACHE_KEY_MAP = {
+  [AVATAR_TYPE.CONFLUENCE_USER]: CACHE_KEY.AVATAR_CONFLUENCE_USER,
+  [AVATAR_TYPE.CONFLUENCE_SPACE]: CACHE_KEY.AVATAR_CONFLUENCE_SPACE,
+  [AVATAR_TYPE.JIRA_USER]: CACHE_KEY.AVATAR_JIRA_USER,
+} as const satisfies Record<AvatarType, string>;
+
 export const CACHE_DIR = {
   // avatar directories
   [AVATAR_TYPE.CONFLUENCE_USER]: path.resolve(environment.supportPath, "avatar-confluence-user"),
@@ -32,9 +38,3 @@ export const CACHE_DIR = {
   // other directories
   API_RESPONSE: path.resolve(environment.supportPath, "api-response"),
 } as const;
-
-export const AVATAR_TYPE_CACHE_KEY_MAP = {
-  [AVATAR_TYPE.CONFLUENCE_USER]: CACHE_KEY.AVATAR_CONFLUENCE_USER,
-  [AVATAR_TYPE.CONFLUENCE_SPACE]: CACHE_KEY.AVATAR_CONFLUENCE_SPACE,
-  [AVATAR_TYPE.JIRA_USER]: CACHE_KEY.AVATAR_JIRA_USER,
-} as const satisfies Record<AvatarType, string>;

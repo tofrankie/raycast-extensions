@@ -6,12 +6,17 @@ import { environment } from "@raycast/api";
 import { downloadAvatar } from "@/utils";
 import { CURRENT_APP_TYPE, CURRENT_PAT } from "@/constants";
 import { useAvatarCache } from "@/hooks";
-import type { AvatarList, AvatarType } from "@/types";
+import type { AvatarType } from "@/types";
+
+type AvatarItem = {
+  key: string;
+  url: string;
+};
 
 type UseAvatarOptions<T> = {
   items: T[];
   avatarType: AvatarType;
-  collectAvatars: (items: T[]) => AvatarList;
+  collectAvatars: (items: T[]) => AvatarItem[];
 };
 
 type AvatarQueryKey = readonly [

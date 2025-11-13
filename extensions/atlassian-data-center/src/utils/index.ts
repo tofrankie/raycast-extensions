@@ -9,5 +9,4 @@ export * from "./jira-request";
 export * from "./jira-shared";
 export * from "./jira-worklog";
 export * from "./request";
-export * from "./section-title";
 export * from "./query";
